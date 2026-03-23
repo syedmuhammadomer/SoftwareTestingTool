@@ -1,0 +1,137 @@
+import { Injectable } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
+
+@Injectable()
+export class EmailService {
+  private transporter: nodemailer.Transporter;
+
+  constructor() {
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail', // Use Gmail service instead of manual config
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // true for 465, false for 587
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS, // This should be app password, not regular password
+      },
+    });
+
+    // Verify connection
+    this.transporter.verify((error, success) => {
+      if (error) {
+        console.error('[EMAIL] Connection Error:', error);
+      } else {
+        console.log('[EMAIL] SMTP Connection verified successfully');
+      }
+    });
+  }
+
+  async sendOtpEmail(email: string, otp: string): Promise<void> {
+    const mailOptions = {
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: email,
+      subject: 'Your OTP Code - Project Authentication',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Welcome to Project!</h2>
+          <p>Your One-Time Password (OTP) for account verification is:</p>
+          <div style="background-color: #f8f9fa; padding: 20px; text-align: center; margin: 20px 0;">
+            <h1 style="color: #007bff; font-size: 32px; margin: 0; letter-spacing: 5px;">${otp}</h1>
+          </div>
+          <p><strong>Important:</strong></p>
+          <ul>
+            <li>This OTP will expire in 10 minutes</li>
+            <li>Do not share this code with anyone</li>
+            <li>If you didn't request this, please ignore this email</li>
+          </ul>
+          <p>Thank you for registering with us!</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+          <p style="color: #666; font-size: 12px;">
+            This is an automated message. Please do not reply to this email.
+          </p>
+        </div>
+      `,
+      text: `
+        Welcome to Project!
+
+        Your One-Time Password (OTP) for account verification is: ${otp}
+
+        Important:
+        - This OTP will expire in 10 minutes
+        - Do not share this code with anyone
+        - If you didn't request this, please ignore this email
+
+        Thank you for registering with us!
+
+        This is an automated message. Please do not reply to this email.
+      `,
+    };
+
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`[EMAIL] ✅ OTP sent successfully to ${email}`);
+      console.log(`[EMAIL] Message ID: ${info.messageId}`);
+      console.log(`[DEV] OTP for ${email}: ${otp}`);
+    } catch (error) {
+      console.error(`[EMAIL] ❌ Failed to send OTP to ${email}`);
+      console.error(`[EMAIL] Error Details:`, error.message);
+      console.error(`[EMAIL] Error Code:`, error.code);
+      if (error.response) {
+        console.error(`[EMAIL] SMTP Response:`, error.response);
+      }
+      // For development, still log the OTP to console as fallback
+      console.log(`[DEV] OTP for ${email}: ${otp} (Use this OTP for testing)`);
+      throw new Error(`Failed to send OTP email: ${error.message}`);
+    }
+  }
+
+  async sendWelcomeEmail(email: string, name?: string): Promise<void> {
+    const mailOptions = {
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: email,
+      subject: 'Welcome to Project!',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Welcome ${name || 'User'}!</h2>
+          <p>Your account has been successfully verified and activated.</p>
+          <p>You can now log in to your account and start using all the features of Project.</p>
+          <div style="background-color: #f8f9fa; padding: 20px; text-align: center; margin: 20px 0;">
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login"
+               style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              Login to Your Account
+            </a>
+          </div>
+          <p>If you have any questions, feel free to contact our support team.</p>
+          <p>Happy exploring!</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+          <p style="color: #666; font-size: 12px;">
+            This is an automated message. Please do not reply to this email.
+          </p>
+        </div>
+      `,
+      text: `
+        Welcome ${name || 'User'}!
+
+        Your account has been successfully verified and activated.
+
+        You can now log in to your account and start using all the features of Project.
+
+        Login here: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/login
+
+        If you have any questions, feel free to contact our support team.
+
+        Happy exploring!
+
+        This is an automated message. Please do not reply to this email.
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`[EMAIL] Welcome email sent successfully to ${email}`);
+    } catch (error) {
+      console.error(`[EMAIL] Failed to send welcome email to ${email}:`, error);
+    }
+  }
+}

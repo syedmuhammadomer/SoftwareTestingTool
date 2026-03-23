@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #06b6d4;
+  --secondary-color: #0891b2;
+  --bg-dark: #0f172a;
+  --bg-card: #1e293b;
+  --text-light: #f1f5f9;
+  --text-muted: #94a3b8;
+}
+
+html, body, #__next {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-950 text-white;
+  font-family: -apple-system, BlinkMacSystemFont, "sans-serif", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.container { max-width: 1200px; }
