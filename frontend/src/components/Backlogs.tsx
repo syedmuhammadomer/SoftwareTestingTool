@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useState } from 'react'
-import { MoreVertical, Search, PlusCircle, AlertCircle, MessageSquare } from 'lucide-react'
+import { MoreVertical, Search, PlusCircle } from 'lucide-react'
 import Button from './Button'
 
 export type StoryStatus = 'Backlog' | 'In Progress' | 'QA Reviews' | 'Done'

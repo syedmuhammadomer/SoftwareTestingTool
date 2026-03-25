@@ -105,10 +105,6 @@ const projects: Project[] = [
 ]
 
 export default function Projects() {
-  function setIsNewProjectModalOpen(arg0: boolean) {
-    throw new Error('Function not implemented.')
-  }
-
   return (
     <div>
       {/* header */}
