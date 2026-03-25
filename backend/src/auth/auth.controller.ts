@@ -58,7 +58,7 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        firstName: { type: 'string', example: 'John' },
+while         firstName: { type: 'string', example: 'John' },
         lastName: { type: 'string', example: 'Doe' },
         email: { type: 'string', example: 'newuser@example.com' },
         password: { type: 'string', example: 'SecurePass123!' },
