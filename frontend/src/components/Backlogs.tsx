@@ -65,7 +65,7 @@ export default function Backlogs() {
           <p className="text-slate-400">Manage user stories and track their progress</p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          <select 
+          <select
             value={selectedProjectId}
             onChange={(e) => setSelectedProjectId(e.target.value)}
             className="bg-slate-800 text-slate-100 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
@@ -116,11 +116,10 @@ export default function Backlogs() {
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex gap-2 items-center">
-                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${
-                          story.priority === 'High' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                          story.priority === 'Medium' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
-                          'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                        }`}>
+                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${story.priority === 'High' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                            story.priority === 'Medium' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
+                              'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                          }`}>
                           {story.priority}
                         </span>
                         <span className="text-slate-400 text-xs font-medium">#{story.id}</span>
@@ -129,32 +128,32 @@ export default function Backlogs() {
                         <MoreVertical className="w-4 h-4" />
                       </button>
                     </div>
-                    
+
                     <h4 className="text-sm font-medium text-slate-200 mb-1 leading-snug">{story.title}</h4>
                     <p className="text-xs text-slate-400 line-clamp-2 mb-4">{story.description}</p>
-                    
+
                     <div className="flex items-center justify-between border-t border-slate-700/50 pt-3">
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center text-[10px] text-cyan-400 font-medium">
                           {story.points}
                         </div>
                       </div>
-                      
+
                       <div className="flex gap-2">
-                         <div className="flex sm:hidden overflow-x-auto gap-1">
-                           <select 
-                             className="text-xs bg-slate-900 text-slate-300 border border-slate-700 rounded p-1"
-                             value={story.status}
-                             onChange={(e) => {
-                               const newStatus = e.target.value as StoryStatus
-                               setStories(prev => prev.map(s => s.id === story.id ? { ...s, status: newStatus } : s))
-                             }}
-                           >
-                             {columns.map(col => (
-                               <option key={col} value={col}>{col}</option>
-                             ))}
-                           </select>
-                         </div>
+                        <div className="flex sm:hidden overflow-x-auto gap-1">
+                          <select
+                            className="text-xs bg-slate-900 text-slate-300 border border-slate-700 rounded p-1"
+                            value={story.status}
+                            onChange={(e) => {
+                              const newStatus = e.target.value as StoryStatus
+                              setStories(prev => prev.map(s => s.id === story.id ? { ...s, status: newStatus } : s))
+                            }}
+                          >
+                            {columns.map(col => (
+                              <option key={col} value={col}>{col}</option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
                     </div>
                   </div>
