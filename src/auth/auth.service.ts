@@ -1,40 +1,220 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-
-type User = {
-  id: number;
-  email: string;
-  // stored as bcrypt hash
-  passwordHash: string;
-};
+import * as jwt from 'jsonwebtoken';
+import { User } from './user.entity';
+import { PendingRegistration } from './pending-registration.entity';
+import { EmailService } from './email.service';
 
 @Injectable()
 export class AuthService {
-  // Example in-memory user store.
-  // Replace this with a real database in production.
-  private users: User[] = [];
+  private readonly JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key';
+  private readonly OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+  private readonly MAX_OTP_ATTEMPTS = 5;
 
-  constructor() {
-    // Create a demo user with email user@example.com and password password123
-    const pw = 'password123!';
-    const hash = bcrypt.hashSync(pw, 10);
-    this.users.push({ id: 1, email: 'user@example.com', passwordHash: hash });
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    @InjectRepository(PendingRegistration)
+    private pendingRepository: Repository<PendingRegistration>,
+    private emailService: EmailService,
+  ) {
+    this.createDemoUser();
+  }
+
+  private async createDemoUser() {
+    const existing = await this.userRepository.findOne({ where: { email: 'user@example.com' } });
+    if (existing) {
+      // Update existing user if they don't have firstName/lastName
+      if (!existing.firstName || !existing.lastName) {
+        existing.firstName = 'Demo';
+        existing.lastName = 'User';
+        await this.userRepository.save(existing);
+      }
+    } else {
+      // Create new demo user
+      const hash = await bcrypt.hash('password123!', 10);
+      const demoUser = this.userRepository.create({
+        firstName: 'Demo',
+        lastName: 'User',
+        email: 'user@example.com',
+        passwordHash: hash,
+        verified: true,
+      });
+      await this.userRepository.save(demoUser);
+    }
   }
 
   async validateUser(email: string, password: string): Promise<User | null> {
-    const user = this.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+    const user = await this.userRepository.findOne({ where: { email: email.toLowerCase() } });
     if (!user) return null;
     const match = await bcrypt.compare(password, user.passwordHash);
     return match ? user : null;
   }
 
-  // For demonstration only. In production return a JWT or session.
+  /**
+   * Register a new user - creates a pending registration and sends OTP
+   */
+  async register(firstName: string, lastName: string, email: string, password: string): Promise<{ message: string }> {
+    // Validate email is not already registered
+    const existingUser = await this.userRepository.findOne({ where: { email: email.toLowerCase() } });
+    if (existingUser) {
+      throw new BadRequestException('Email already registered');
+    }
+
+    // Check if there's already a pending registration
+    const existingPending = await this.pendingRepository.findOne({ where: { email: email.toLowerCase() } });
+    if (existingPending) {
+      throw new BadRequestException('Registration already pending. Please verify OTP or try again later');
+    }
+
+    // Hash the password
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Generate 6-digit OTP
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+
+    // Store pending registration
+    const pending = this.pendingRepository.create({
+      email: email.toLowerCase(),
+      firstName,
+      lastName,
+      passwordHash,
+      otp,
+      otpExpiry: Date.now() + this.OTP_EXPIRY_MS,
+      attempts: 0,
+    });
+
+    await this.pendingRepository.save(pending);
+
+    // Send OTP via email service
+    try {
+      await this.emailService.sendOtpEmail(email, otp);
+    } catch (error) {
+      // If email fails, still allow registration but log the OTP for development
+      console.log(`[DEV] OTP for ${email}: ${otp} (Email service failed)`);
+    }
+
+    return {
+      message: 'Registration submitted. OTP sent to your email',
+    };
+  }
+
+  /**
+   * Verify OTP and complete registration
+   */
+  async verifyOtp(email: string, otp: string): Promise<{ token: string; message: string }> {
+    const pending = await this.pendingRepository.findOne({ where: { email: email.toLowerCase() } });
+
+    if (!pending) {
+      throw new BadRequestException('No pending registration found. Please register first');
+    }
+
+    // Check if OTP has expired
+    if (Date.now() > pending.otpExpiry) {
+      await this.pendingRepository.delete({ email: email.toLowerCase() });
+      throw new BadRequestException('OTP expired. Please register again');
+    }
+
+    // Check if max attempts exceeded
+    if (pending.attempts >= this.MAX_OTP_ATTEMPTS) {
+      await this.pendingRepository.delete({ email: email.toLowerCase() });
+      throw new BadRequestException('Too many OTP attempts. Please register again');
+    }
+
+    // Verify OTP
+    if (otp !== pending.otp) {
+      pending.attempts++;
+      await this.pendingRepository.save(pending);
+      throw new BadRequestException(
+        `Invalid OTP. ${this.MAX_OTP_ATTEMPTS - pending.attempts} attempts remaining`
+      );
+    }
+
+    // Create the user
+    const newUser = this.userRepository.create({
+      firstName: pending.firstName,
+      lastName: pending.lastName,
+      email: pending.email,
+      passwordHash: pending.passwordHash,
+      verified: true,
+    });
+
+    await this.userRepository.save(newUser);
+    await this.pendingRepository.delete({ email: email.toLowerCase() });
+
+    // Send welcome email
+    try {
+      await this.emailService.sendWelcomeEmail(newUser.email);
+    } catch (error) {
+      console.error(`[EMAIL] Failed to send welcome email to ${newUser.email}:`, error);
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: newUser.id, email: newUser.email },
+      this.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    return {
+      token,
+      message: 'Registration successful',
+    };
+  }
+
+  /**
+   * Resend OTP
+   */
+  async resendOtp(email: string): Promise<{ message: string }> {
+    const pending = await this.pendingRepository.findOne({ where: { email: email.toLowerCase() } });
+
+    if (!pending) {
+      throw new BadRequestException('No pending registration found');
+    }
+
+    // Generate new OTP
+    const newOtp = String(Math.floor(100000 + Math.random() * 900000));
+
+    // Update pending registration
+    pending.otp = newOtp;
+    pending.otpExpiry = Date.now() + this.OTP_EXPIRY_MS;
+    pending.attempts = 0;
+
+    await this.pendingRepository.save(pending);
+
+    // Send OTP via email service
+    try {
+      await this.emailService.sendOtpEmail(email, newOtp);
+    } catch (error) {
+      // If email fails, still allow resend but log the OTP for development
+      console.log(`[DEV] Resend OTP for ${email}: ${newOtp} (Email service failed)`);
+    }
+
+    return {
+      message: 'OTP resent to your email',
+    };
+  }
+
+  /**
+   * Generate login response with JWT token
+   */
   async loginResponse(user: User) {
+    const token = jwt.sign(
+      { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName },
+      this.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
     return {
       message: 'Login successful',
+      token,
       user: {
         id: user.id,
         email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
       },
     };
   }

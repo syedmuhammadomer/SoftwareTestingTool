@@ -1,0 +1,342 @@
+/**
+ * INTEGRATION TEST EXAMPLES - API Usage
+ * 
+ * These are example curl commands and expected responses for the authentication API.
+ * Copy and paste these into a terminal or API client (Postman, Insomnia, etc.)
+ * 
+ * API Base URL: http://localhost:3000
+ */
+
+// ============================================================================
+// 1. REGISTER A NEW USER
+// ============================================================================
+
+/**
+ * Request: Register with email and password
+ */
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "password": "MyPassword123!"
+  }'
+
+/**
+ * Expected Response (201 or 200):
+ * {
+ *   "message": "Registration submitted. OTP sent to your email"
+ * }
+ * 
+ * Check console for OTP: [DEV] OTP for john.doe@example.com: 123456
+ */
+
+// ============================================================================
+// 2. RESEND OTP (if user didn't receive it)
+// ============================================================================
+
+/**
+ * Request: Resend OTP
+ */
+curl -X POST http://localhost:3000/auth/resend-otp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com"
+  }'
+
+/**
+ * Expected Response (200):
+ * {
+ *   "message": "OTP resent to your email"
+ * }
+ * 
+ * Check console for new OTP: [DEV] Resend OTP for john.doe@example.com: 654321
+ */
+
+// ============================================================================
+// 3. VERIFY OTP AND COMPLETE REGISTRATION
+// ============================================================================
+
+/**
+ * Request: Verify OTP with email and 6-digit code
+ */
+curl -X POST http://localhost:3000/auth/verify-otp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "otp": "123456"
+  }'
+
+/**
+ * Expected Response (200):
+ * {
+ *   "message": "Registration successful",
+ *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwNjA0ODAwfQ...."
+ * }
+ */
+
+// ============================================================================
+// 4. LOGIN WITH REGISTERED CREDENTIALS
+// ============================================================================
+
+/**
+ * Request: Login with email and password
+ */
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "password": "MyPassword123!"
+  }'
+
+/**
+ * Expected Response (200):
+ * {
+ *   "message": "Login successful",
+ *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+ *   "user": {
+ *     "id": 2,
+ *     "email": "john.doe@example.com"
+ *   }
+ * }
+ */
+
+// ============================================================================
+// ERROR CASES
+// ============================================================================
+
+/**
+ * ERROR: Invalid email format
+ * Request:
+ */
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "invalid-email",
+    "password": "MyPassword123!"
+  }'
+
+/**
+ * Response (400):
+ * {
+ *   "statusCode": 400,
+ *   "message": ["Email must be a valid email address"]
+ * }
+ */
+
+// ============================================================================
+
+/**
+ * ERROR: Password too short
+ * Request:
+ */
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "Short1!"
+  }'
+
+/**
+ * Response (400):
+ * {
+ *   "statusCode": 400,
+ *   "message": ["Password must be at least 8 characters"]
+ * }
+ */
+
+// ============================================================================
+
+/**
+ * ERROR: Password missing special character
+ * Request:
+ */
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "Password123"
+  }'
+
+/**
+ * Response (400):
+ * {
+ *   "statusCode": 400,
+ *   "message": ["Password must contain at least one special character"]
+ * }
+ */
+
+// ============================================================================
+
+/**
+ * ERROR: Email already registered
+ * Request: (register same email twice)
+ */
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "existing@example.com",
+    "password": "MyPassword123!"
+  }'
+
+/**
+ * Response (400):
+ * {
+ *   "message": "Email already registered"
+ * }
+ */
+
+// ============================================================================
+
+/**
+ * ERROR: Invalid OTP
+ * Request:
+ */
+curl -X POST http://localhost:3000/auth/verify-otp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "otp": "000000"
+  }'
+
+/**
+ * Response (400):
+ * {
+ *   "message": "Invalid OTP. 4 attempts remaining"
+ * }
+ */
+
+// ============================================================================
+
+/**
+ * ERROR: OTP expired
+ * Request: (after 10 minutes from registration)
+ */
+curl -X POST http://localhost:3000/auth/verify-otp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "otp": "123456"
+  }'
+
+/**
+ * Response (400):
+ * {
+ *   "message": "OTP expired. Please register again"
+ * }
+ */
+
+// ============================================================================
+
+/**
+ * ERROR: Too many OTP attempts (5+)
+ * Request: (after 5 failed attempts)
+ */
+curl -X POST http://localhost:3000/auth/verify-otp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "otp": "000000"
+  }'
+
+/**
+ * Response (400):
+ * {
+ *   "message": "Too many OTP attempts. Please register again"
+ * }
+ */
+
+// ============================================================================
+
+/**
+ * ERROR: No pending registration for resend
+ * Request:
+ */
+curl -X POST http://localhost:3000/auth/resend-otp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "nonexistent@example.com"
+  }'
+
+/**
+ * Response (400):
+ * {
+ *   "message": "No pending registration found"
+ * }
+ */
+
+// ============================================================================
+
+/**
+ * ERROR: Invalid login credentials
+ * Request:
+ */
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@example.com",
+    "password": "WrongPassword123!"
+  }'
+
+/**
+ * Response (401):
+ * {
+ *   "statusCode": 401,
+ *   "message": "Incorrect email or password"
+ * }
+ */
+
+// ============================================================================
+// USING JWT TOKEN FOR AUTHENTICATED REQUESTS
+// ============================================================================
+
+/**
+ * After login or OTP verification, use the token for authenticated requests:
+ */
+
+curl -X GET http://localhost:3000/auth/me \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+/**
+ * Or in JavaScript (Axios/Fetch):
+ */
+
+// JavaScript Example
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
+
+// Using Axios
+const response = await axios.get('/auth/me', {
+  headers: {
+    'Authorization': `Bearer ${token}`
+  }
+});
+
+// Using Fetch
+const response = await fetch('/auth/me', {
+  headers: {
+    'Authorization': `Bearer ${token}`
+  }
+});
+
+// ============================================================================
+// VALIDATION RULES SUMMARY
+// ============================================================================
+
+/**
+ * EMAIL:
+ * - Must be a valid email format (xxx@xxx.xxx)
+ * - Cannot be empty
+ * - Must be unique (cannot register twice)
+ * 
+ * PASSWORD:
+ * - Minimum 8 characters
+ * - Must contain at least one special character: ! @ # $ % ^ & * ( ) - +
+ * - Cannot be empty
+ * 
+ * OTP:
+ * - Must be exactly 6 digits
+ * - Valid for 10 minutes from generation
+ * - Maximum 5 verification attempts
+ * - Can be resent at any time
+ */
+
+// ============================================================================
