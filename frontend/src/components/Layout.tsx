@@ -6,6 +6,7 @@ import {
   Menu, Kanban
 } from 'lucide-react'
 import Button from './Button'
+import { useProjectContext } from '@/context/ProjectContext'
 
 interface NavigationItem {
   name: string
@@ -17,7 +18,7 @@ const navigationItems: NavigationItem[] = [
   { name: 'Dashboard', icon: Home, href: '/dashboard' },
   { name: 'Projects', icon: FolderOpen, href: '/projects' },
   { name: 'Backlogs', icon: Kanban, href: '/backlogs' },
-  { name: 'AI Generator', icon: Sparkles, href: '/ai-generator' },
+  { name: 'User Stories', icon: Sparkles, href: '/user-stories' },
   { name: 'Test Case Manager', icon: TestTube, href: '/test-manager' },
   { name: 'RTM', icon: Link, href: '/rtm' },
   { name: 'Documents', icon: File, href: '/documents' },
@@ -35,6 +36,7 @@ export default function Layout({ children }: LayoutProps) {
   const router = useRouter()
   const [user, setUser] = useState<{ firstName: string; lastName: string; email: string } | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { projects, selectedProjectId, setSelectedProjectId, loading: projectsLoading } = useProjectContext()
 
   useEffect(() => {
     const userData = localStorage.getItem('userData')
@@ -53,22 +55,36 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-slate-950 flex">
-      {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 border-r border-slate-800 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-center h-20 px-6 border-b border-slate-800">
-            <div className="flex items-center space-x-3">
+          <div className="border-b border-slate-800 px-4 py-5">
+            <div className="flex items-center space-x-3 min-w-0">
               <div className="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center">
                 <Zap className="w-6 h-6 text-white" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h1 className="text-xl font-bold text-white">TestGen AI</h1>
               </div>
             </div>
           </div>
-
-          {/* Navigation */}
+          <div className="px-4 pt-4">
+            <select
+              value={selectedProjectId ?? ''}
+              onChange={(event) => setSelectedProjectId(Number(event.target.value))}
+              disabled={projectsLoading || projects.length === 0}
+              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {projects.length === 0 ? (
+                <option value="">{projectsLoading ? 'Loading projects...' : 'No projects yet'}</option>
+              ) : (
+                projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
           <nav className="flex-1 px-4 py-6 space-y-2">
             {navigationItems.map((item) => {
               const Icon = item.icon
@@ -78,9 +94,9 @@ export default function Layout({ children }: LayoutProps) {
                   key={item.name}
                   href={item.href}
                   className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200 ${current
-                      ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                    }`}
+                    ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
                 >
                   <Icon className="w-5 h-5 mr-3" />
                   {item.name}
@@ -89,7 +105,6 @@ export default function Layout({ children }: LayoutProps) {
             })}
           </nav>
 
-          {/* User Profile */}
           <div className="p-4 border-t border-slate-800">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
@@ -114,9 +129,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 lg:ml-0">
-        {/* Mobile sidebar overlay */}
+        <div className="flex-1 lg:ml-0">
         {sidebarOpen && (
           <div
             className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
@@ -124,7 +137,6 @@ export default function Layout({ children }: LayoutProps) {
           />
         )}
 
-        {/* Top Bar */}
         <div className="sticky top-0 z-40 bg-slate-950 border-b border-slate-800">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
@@ -137,12 +149,10 @@ export default function Layout({ children }: LayoutProps) {
                 </button>
                 <h2 className="text-xl font-semibold text-white ml-4">{router.pathname.replace('/', '') || 'Dashboard'}</h2>
               </div>
-              {/* right side placeholders or user actions can go here */}
             </div>
           </div>
         </div>
 
-        {/* Page content */}
         <main className="p-4 sm:p-6 lg:p-8">
           {children}
         </main>

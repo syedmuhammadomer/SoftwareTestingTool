@@ -1,7 +1,8 @@
 import * as React from 'react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { MoreVertical, Search, PlusCircle } from 'lucide-react'
 import Button from './Button'
+import { ProjectRecord } from '@/context/ProjectContext'
 
 export type StoryStatus = 'Backlog' | 'In Progress' | 'QA Reviews' | 'Done'
 
@@ -15,27 +16,32 @@ export interface UserStory {
   points: number
 }
 
-const mockProjects = [
-  { id: '1', name: 'E-commerce Platform' },
-  { id: '2', name: 'Banking App' },
-  { id: '3', name: 'Healthcare Portal' }
-]
+type BacklogsProps = {
+  selectedProject: ProjectRecord | null
+}
 
-const initialStories: UserStory[] = [
-  { id: '1', projectId: '1', title: 'User authentication API', description: 'Implement JWT based auth endpoints', status: 'Backlog', priority: 'High', points: 5 },
-  { id: '2', projectId: '1', title: 'Dashboard Analytics', description: 'Create dynamic charts for user stats', status: 'Backlog', priority: 'Medium', points: 3 },
-  { id: '3', projectId: '1', title: 'Kanban view for tasks', description: 'Drag and drop interface for stories', status: 'In Progress', priority: 'High', points: 8 },
-  { id: '4', projectId: '1', title: 'Profile settings page', description: 'Allow users to update profile photo', status: 'In Progress', priority: 'Low', points: 2 },
-  { id: '5', projectId: '2', title: 'Email notifications', description: 'Setup SendGrid for transactional emails', status: 'QA Reviews', priority: 'High', points: 3 },
-  { id: '6', projectId: '2', title: 'Project setup', description: 'Initialize Next.js application with Tailwind', status: 'Done', priority: 'High', points: 1 },
-  { id: '7', projectId: '3', title: 'Patient Search Feature', description: 'Setup ElasticSearch for fast patient lookup', status: 'Backlog', priority: 'High', points: 5 },
-  { id: '8', projectId: '3', title: 'HIPAA Compliance Audit', description: 'Ensure all data at rest is encrypted', status: 'In Progress', priority: 'High', points: 13 },
-]
-
-export default function Backlogs() {
-  const [stories, setStories] = useState<UserStory[]>(initialStories)
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(mockProjects[0].id)
+export default function Backlogs({ selectedProject }: BacklogsProps) {
   const columns: StoryStatus[] = ['Backlog', 'In Progress', 'QA Reviews', 'Done']
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const initialStories = useMemo<UserStory[]>(
+    () =>
+      (selectedProject?.userStories ?? []).map((story, index) => ({
+        id: `${selectedProject?.id ?? 'project'}-${index + 1}`,
+        projectId: String(selectedProject?.id ?? ''),
+        title: story.goal,
+        description: story.benefit || story.acceptanceCriteria || 'No additional details provided.',
+        status: 'Backlog',
+        priority: index % 3 === 0 ? 'High' : index % 3 === 1 ? 'Medium' : 'Low',
+        points: Math.max(1, (story.acceptanceCriteria?.split('\n').filter(Boolean).length ?? 0) || 1),
+      })),
+    [selectedProject],
+  )
+  const [stories, setStories] = useState<UserStory[]>([])
+
+  React.useEffect(() => {
+    setStories(initialStories)
+  }, [initialStories])
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     e.dataTransfer.setData('storyId', id)
@@ -55,7 +61,11 @@ export default function Backlogs() {
     e.preventDefault()
   }
 
-  const projectStories = stories.filter(story => story.projectId === selectedProjectId)
+  const projectStories = stories.filter(
+    (story) =>
+      story.projectId === String(selectedProject?.id ?? '') &&
+      `${story.title} ${story.description}`.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
 
   return (
     <div className="flex flex-col h-full space-y-6">
@@ -65,20 +75,18 @@ export default function Backlogs() {
           <p className="text-slate-400">Manage user stories and track their progress</p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
-          <select
-            value={selectedProjectId}
-            onChange={(e) => setSelectedProjectId(e.target.value)}
-            className="bg-slate-800 text-slate-100 border border-slate-700 rounded-lg py-2 px-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
-          >
-            {mockProjects.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
+          {selectedProject && (
+            <div className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100">
+              {selectedProject.name}
+            </div>
+          )}
 
           <div className="relative">
             <input
               type="text"
               placeholder="Search stories..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
               className="w-full sm:w-64 pl-10 pr-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -88,6 +96,12 @@ export default function Backlogs() {
           </Button>
         </div>
       </div>
+
+      {!selectedProject && (
+        <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6 text-sm text-slate-400">
+          Select a project from the dropdown next to the logo to load its user stories into the backlog board.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 flex-1 min-h-[600px] pb-6">
         {columns.map((column) => {

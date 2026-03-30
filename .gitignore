@@ -7,3 +7,4 @@ next/
 .env.local
 .env.development
 .env.production
+uploads/

@@ -1,110 +1,28 @@
-import * as React from 'react'
-import { PlusCircle, MoreVertical, User } from 'lucide-react'
+'use client'
+
+import { useState } from 'react'
+import { PlusCircle, MoreVertical } from 'lucide-react'
+import { useRouter } from 'next/router'
 import Button from './Button'
 
-interface Project {
-  id: string
+type ProjectSummary = {
+  id: number
   name: string
-  description: string
   status: string
-  statusColor: string
-  coverage: number
-  requirements: number
-  scenarios: number
-  testCases: number
-  members: number
-  date: string
-  borderColor: string
+  description?: string
+  features?: { title?: string }[]
+  testCases?: { testCaseId?: string }[]
+  createdAt?: string
 }
 
-const projects: Project[] = [
-  {
-    id: '1',
-    name: 'E-commerce Platform',
-    description: 'Online shopping platform with payment integration',
-    status: 'In Progress',
-    statusColor: 'bg-cyan-100 text-cyan-700',
-    coverage: 87,
-    requirements: 24,
-    scenarios: 42,
-    testCases: 156,
-    members: 4,
-    date: 'Mar 15, 2026',
-    borderColor: 'border-cyan-500',
-  },
-  {
-    id: '2',
-    name: 'Banking App',
-    description: 'Mobile banking application for iOS and Android',
-    status: 'Review',
-    statusColor: 'bg-purple-100 text-purple-700',
-    coverage: 92,
-    requirements: 31,
-    scenarios: 67,
-    testCases: 243,
-    members: 6,
-    date: 'Mar 20, 2026',
-    borderColor: 'border-purple-500',
-  },
-  {
-    id: '3',
-    name: 'Healthcare Portal',
-    description: 'Patient management and appointment system',
-    status: 'In Progress',
-    statusColor: 'bg-green-100 text-green-700',
-    coverage: 73,
-    requirements: 18,
-    scenarios: 28,
-    testCases: 89,
-    members: 3,
-    date: 'Mar 25, 2026',
-    borderColor: 'border-green-500',
-  },
-  {
-    id: '4',
-    name: 'CRM System',
-    description: 'Customer relationship management platform',
-    status: 'Planning',
-    statusColor: 'bg-orange-100 text-orange-700',
-    coverage: 45,
-    requirements: 12,
-    scenarios: 16,
-    testCases: 54,
-    members: 2,
-    date: 'Apr 5, 2026',
-    borderColor: 'border-orange-500',
-  },
-  {
-    id: '5',
-    name: 'Inventory Management',
-    description: 'Warehouse and inventory tracking system',
-    status: 'In Progress',
-    statusColor: 'bg-pink-100 text-pink-700',
-    coverage: 68,
-    requirements: 21,
-    scenarios: 35,
-    testCases: 112,
-    members: 5,
-    date: 'Apr 10, 2026',
-    borderColor: 'border-pink-500',
-  },
-  {
-    id: '6',
-    name: 'Analytics Dashboard',
-    description: 'Business intelligence and reporting dashboard',
-    status: 'In Progress',
-    statusColor: 'bg-blue-100 text-blue-700',
-    coverage: 81,
-    requirements: 15,
-    scenarios: 24,
-    testCases: 78,
-    members: 3,
-    date: 'Apr 15, 2026',
-    borderColor: 'border-blue-500',
-  }
-]
+interface ProjectsProps {
+  projects: ProjectSummary[]
+  onDeleteRequest: (project: ProjectSummary) => void
+}
 
-export default function Projects() {
+export default function Projects({ projects, onDeleteRequest }: ProjectsProps) {
+  const router = useRouter()
+  const [menuOpenId, setMenuOpenId] = useState<number | null>(null)
   return (
     <div>
       {/* header */}
@@ -131,58 +49,79 @@ export default function Projects() {
             <option>Sort by: Recent</option>
           </select>
           <Button
-            className="ml-auto bg-cyan-500 hover:bg-cyan-600 text-white">
+            className="ml-auto bg-cyan-500 hover:bg-cyan-600 text-white"
+            onClick={() => router.push('/projects/new')}
+          >
             <PlusCircle className="w-5 h-5 mr-2" /> New Project
-
           </Button>
         </div>
       </div>
 
       {/* grid */}
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {projects.map(p => (
-          <div key={p.id} className={`relative bg-slate-800 rounded-xl shadow ${p.borderColor} border-t-[4px]`}>
-            <div className="p-6">
-              <div className="flex justify-between items-start">
-                <h2 className="text-lg font-semibold text-white">{p.name}</h2>
-                <MoreVertical className="w-5 h-5 text-slate-400" />
-              </div>
-              <div className="mt-1">
-                <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${p.statusColor}`}>{p.status}</span>
-              </div>
-              <p className="mt-2 text-slate-400 text-sm">{p.description}</p>
-              <div className="mt-4">
-                <div className="text-slate-300 text-xs mb-1">Test Coverage</div>
-                <div className="w-full bg-slate-700 h-2 rounded">
-                  <div className="bg-cyan-500 h-2 rounded" style={{ width: `${p.coverage}%` }} />
+      {projects.length === 0 ? (
+        <div className="text-slate-400">No projects available yet. Queue one to start.</div>
+      ) : (
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {projects.map((project) => (
+            <div
+              key={project.id}
+              className="relative bg-slate-800 rounded-xl shadow border border-slate-800 overflow-hidden"
+            >
+              <div className="p-6 space-y-3">
+                <div className="flex justify-between items-center relative">
+                  <h2 className="text-lg font-semibold text-white">{project.name}</h2>
+                  <button
+                    onClick={() => setMenuOpenId((prev) => (prev === project.id ? null : project.id))}
+                    className="rounded-full p-1 transition hover:bg-slate-700"
+                    aria-label="Project options"
+                  >
+                    <MoreVertical className="w-5 h-5 text-slate-400" />
+                  </button>
+                  {menuOpenId === project.id && (
+                    <div className="absolute right-0 top-10 z-10 w-32 rounded-lg border border-slate-700 bg-slate-900 shadow-lg">
+                      <button
+                        onClick={() => {
+                          setMenuOpenId(null)
+                          onDeleteRequest(project)
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm text-slate-100 hover:bg-rose-500/10 transition"
+                      >
+                        Delete project
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="mt-4 grid grid-cols-3 text-center text-slate-300 text-xs">
-                <div>
-                  <div className="font-bold text-white">{p.requirements}</div>
-                  <div>Requirements</div>
+                <span
+                  className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                    project.status === 'completed'
+                      ? 'bg-emerald-500/10 text-emerald-300'
+                      : project.status === 'processing'
+                        ? 'bg-cyan-500/10 text-cyan-300'
+                        : 'bg-rose-500/10 text-rose-300'
+                  }`}
+                >
+                  {project.status.toUpperCase()}
+                </span>
+                <p className="text-sm text-slate-400">{project.description || 'Automated QA insight in progress'}</p>
+                <div className="grid grid-cols-2 gap-3 text-slate-300 text-xs">
+                  <div>
+                    <p className="text-2xl font-semibold text-white">{project.features?.length ?? 0}</p>
+                    <p>Features</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-semibold text-white">{project.testCases?.length ?? 0}</p>
+                    <p>Test Cases</p>
+                  </div>
                 </div>
-                <div>
-                  <div className="font-bold text-white">{p.scenarios}</div>
-                  <div>Scenarios</div>
+                <div className="text-xs h-4 text-slate-500">
+                  Created {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '—'}
                 </div>
-                <div>
-                  <div className="font-bold text-white">{p.testCases}</div>
-                  <div>Test Cases</div>
-                </div>
-              </div>
-              <div className="mt-4 flex justify-between items-center text-slate-400 text-xs">
-                <div className="flex items-center gap-1">
-                  <User className="w-4 h-4" /> {p.members} members
-                </div>
-                <div>
-                  <span className="inline-block bg-slate-700 px-2 py-1 rounded">{p.date}</span>
-                </div>
+                {/* confirmation modal handled outside */}
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Post, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -58,7 +58,7 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-while         firstName: { type: 'string', example: 'John' },
+        firstName: { type: 'string', example: 'John' },
         lastName: { type: 'string', example: 'Doe' },
         email: { type: 'string', example: 'newuser@example.com' },
         password: { type: 'string', example: 'SecurePass123!' },

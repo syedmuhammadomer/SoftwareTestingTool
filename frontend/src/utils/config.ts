@@ -7,6 +7,9 @@ export const config = {
     login: `${API_BASE_URL}/auth/login`,
     logout: `${API_BASE_URL}/auth/logout`,
     me: `${API_BASE_URL}/auth/me`,
+    projects: `${API_BASE_URL}/api/projects`,
+    health: `${API_BASE_URL}/health`,
+    root: `${API_BASE_URL}/`,
   }
 }
 

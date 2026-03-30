@@ -1,6 +1,11 @@
 import type { AppProps } from 'next/app'
+import { ProjectProvider } from '@/context/ProjectContext'
 import '../styles/globals.css'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+  return (
+    <ProjectProvider>
+      <Component {...pageProps} />
+    </ProjectProvider>
+  )
 }

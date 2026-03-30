@@ -1,9 +1,11 @@
-import React from 'react'
+'use client'
+import { useState } from 'react'
 import { Check, Star } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Button from '@/components/Button'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { projects } from '@/data/projects'
 
 export default function Pricing() {
   const container = {
@@ -80,6 +82,9 @@ export default function Pricing() {
     }
   ]
 
+  const [selectedProjectId, setSelectedProjectId] = useState(projects[0]?.id ?? '')
+  const selectedProject = projects.find((project) => project.id === selectedProjectId) ?? projects[0]
+
   return (
     <div className="min-h-screen bg-slate-950">
       <Navbar />
@@ -110,6 +115,76 @@ export default function Pricing() {
               Choose the perfect plan for your testing needs. All plans include our core AI-powered test generation technology.
             </p>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Project dropdown for admin view */}
+      <section className="px-6 lg:px-12 -mt-16">
+        <div className="container mx-auto">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-2xl shadow-cyan-500/10">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-400">Admin project switcher</p>
+                <h3 className="text-2xl font-semibold text-white mt-1">Inspect every project before choosing a plan</h3>
+                <p className="text-slate-400 text-sm">Pick a project to see its coverage, requirements, and team stats right here.</p>
+              </div>
+              <div className="min-w-[240px]">
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Active project</label>
+                <select
+                  value={selectedProjectId}
+                  onChange={(event) => setSelectedProjectId(event.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-2 px-4 focus:outline-none focus-visible:border-cyan-400"
+                >
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="md:col-span-2 space-y-4">
+                <p className="text-slate-200 text-lg font-medium">{selectedProject?.description}</p>
+                <div className="flex flex-wrap gap-3 items-center">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${selectedProject?.statusColor}`}>{selectedProject?.status}</span>
+                  <span className="text-xs text-slate-400">Last updated {selectedProject?.date}</span>
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-[0.25em] text-slate-500 mb-2">Test coverage</div>
+                  <div className="w-full bg-slate-800/50 h-2 rounded-full">
+                    <div
+                      className="h-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"
+                      style={{ width: `${selectedProject?.coverage ?? 0}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">{selectedProject?.coverage}% coverage so far</p>
+                </div>
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-1">
+                {[{
+                  label: 'Requirements',
+                  value: selectedProject?.requirements
+                }, {
+                  label: 'Scenarios',
+                  value: selectedProject?.scenarios
+                }, {
+                  label: 'Test Cases',
+                  value: selectedProject?.testCases
+                }, {
+                  label: 'Members',
+                  value: selectedProject?.members
+                }].map((item) => (
+                  <div key={item.label} className="bg-slate-900/70 border border-slate-800 rounded-2xl p-3">
+                    <p className="text-xs text-slate-400 uppercase tracking-[0.25em] mb-1">{item.label}</p>
+                    <p className="text-2xl font-semibold text-white">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
