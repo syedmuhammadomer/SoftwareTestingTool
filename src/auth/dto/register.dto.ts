@@ -3,6 +3,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEqualTo } from './is-equal-to.validator';
 
 export class RegisterDto {
+  [key: string]: unknown
+
   @ApiProperty({
     description: 'User first name',
     example: 'John',

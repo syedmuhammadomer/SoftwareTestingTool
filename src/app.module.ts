@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import path from 'path';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -8,12 +9,15 @@ import { AuthService } from './auth/auth.service';
 import { EmailService } from './auth/email.service';
 import { User } from './auth/user.entity';
 import { PendingRegistration } from './auth/pending-registration.entity';
+import { ProjectsModule } from './projects/projects.module';
+import { TeamModule } from './team/team.module';
+import { TeamMember } from './team/entities/team-member.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: path.resolve(__dirname, '../.env'),
     }),
 
     // TypeORM / Postgres configuration. Uses DATABASE_URL if provided,
@@ -42,7 +46,9 @@ import { PendingRegistration } from './auth/pending-registration.entity';
       },
     }),
 
-    TypeOrmModule.forFeature([User, PendingRegistration]),
+    TypeOrmModule.forFeature([User, PendingRegistration, TeamMember]),
+    ProjectsModule,
+    TeamModule,
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService, EmailService],

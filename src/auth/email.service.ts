@@ -4,8 +4,10 @@ import * as nodemailer from 'nodemailer';
 @Injectable()
 export class EmailService {
   private transporter: nodemailer.Transporter;
+  private readonly frontendUrl: string;
 
   constructor() {
+    this.frontendUrl = this.resolveFrontendUrl();
     this.transporter = nodemailer.createTransport({
       service: 'gmail', // Use Gmail service instead of manual config
       host: 'smtp.gmail.com',
@@ -18,7 +20,7 @@ export class EmailService {
     });
 
     // Verify connection
-    this.transporter.verify((error, success) => {
+    this.transporter.verify((error, _success) => {
       if (error) {
         console.error('[EMAIL] Connection Error:', error);
       } else {
@@ -97,7 +99,7 @@ export class EmailService {
           <p>Your account has been successfully verified and activated.</p>
           <p>You can now log in to your account and start using all the features of Project.</p>
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; margin: 20px 0;">
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login"
+            <a href="${this.frontendUrl}/login"
                style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
               Login to Your Account
             </a>
@@ -117,7 +119,7 @@ export class EmailService {
 
         You can now log in to your account and start using all the features of Project.
 
-        Login here: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/login
+        Login here: ${this.frontendUrl}/login
 
         If you have any questions, feel free to contact our support team.
 
@@ -133,5 +135,53 @@ export class EmailService {
     } catch (error) {
       console.error(`[EMAIL] Failed to send welcome email to ${email}:`, error);
     }
+  }
+
+  async sendTeamInviteEmail(params: {
+    email: string;
+    fullName: string;
+    role: string;
+    project?: string;
+    team: string;
+  }): Promise<void> {
+    const inviteUrl = `${this.frontendUrl}/register?email=${encodeURIComponent(params.email)}`;
+    const mailOptions = {
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: params.email,
+      subject: `You're invited to TestGen AI as ${params.role}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">You're invited to join TestGen AI</h2>
+          <p>Hello ${params.fullName},</p>
+          <p>You have been invited to join the workspace as <strong>${params.role}</strong>.</p>
+          <ul>
+            <li><strong>Team:</strong> ${params.team}</li>
+            <li><strong>Assigned Project:</strong> ${params.project || 'Will be assigned after login'}</li>
+          </ul>
+          <div style="margin: 24px 0;">
+            <a href="${inviteUrl}" style="background-color: #06b6d4; color: white; padding: 12px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Accept Invitation
+            </a>
+          </div>
+          <p>Use this invitation email to register or log in with the same address. Your access will match the assigned role and project.</p>
+        </div>
+      `,
+      text: `You have been invited to TestGen AI as ${params.role}. Team: ${params.team}. Assigned Project: ${params.project || 'Will be assigned after login'}. Accept invitation: ${inviteUrl}`,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`[EMAIL] Team invite sent successfully to ${params.email}`);
+    } catch (error) {
+      console.error(`[EMAIL] Failed to send invite email to ${params.email}:`, error);
+      throw error;
+    }
+  }
+
+  private resolveFrontendUrl(): string {
+    const configuredUrl = process.env.FRONTEND_URL?.trim();
+    const fallbackUrl = 'http://localhost:3001';
+
+    return (configuredUrl && configuredUrl.length > 0 ? configuredUrl : fallbackUrl).replace(/\/+$/, '');
   }
 }

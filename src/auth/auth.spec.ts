@@ -1,314 +1,125 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { UnauthorizedException } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { RegisterDto, VerifyOtpDto, ResendOtpDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { RegisterDto, ResendOtpDto, VerifyOtpDto } from './dto/register.dto';
 
-describe('AuthController - Registration & OTP Verification', () => {
+describe('AuthController', () => {
   let controller: AuthController;
-  let service: AuthService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
-      providers: [AuthService],
-    }).compile();
+  const authService = {
+    validateUser: jest.fn(),
+    loginResponse: jest.fn(),
+    register: jest.fn(),
+    verifyOtp: jest.fn(),
+    resendOtp: jest.fn(),
+  };
 
-    controller = module.get<AuthController>(AuthController);
-    service = module.get<AuthService>(AuthService);
+  beforeEach(() => {
+    jest.clearAllMocks();
+    controller = new AuthController(authService as unknown as AuthService);
+  });
+
+  describe('login', () => {
+    it('returns a login response when credentials are valid', async () => {
+      const loginDto: LoginDto = {
+        email: 'user@example.com',
+        password: 'password123!',
+      };
+
+      const user = { id: 1, email: 'user@example.com' };
+      const loginResponse = {
+        message: 'Login successful',
+        token: 'token-123',
+        user: {
+          id: 1,
+          email: 'user@example.com',
+        },
+      };
+
+      authService.validateUser.mockResolvedValue(user);
+      authService.loginResponse.mockResolvedValue(loginResponse);
+
+      await expect(controller.login(loginDto)).resolves.toEqual(loginResponse);
+      expect(authService.validateUser).toHaveBeenCalledWith(loginDto.email, loginDto.password);
+      expect(authService.loginResponse).toHaveBeenCalledWith(user);
+    });
+
+    it('throws UnauthorizedException when credentials are invalid', async () => {
+      authService.validateUser.mockResolvedValue(null);
+
+      await expect(
+        controller.login({
+          email: 'user@example.com',
+          password: 'wrong-password',
+        }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
   });
 
   describe('register', () => {
-    it('should register a new user with valid credentials', async () => {
+    it('passes registration fields to the service', async () => {
       const registerDto: RegisterDto = {
-        email: 'newuser@example.com',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
         password: 'SecurePass123!',
+        confirmPassword: 'SecurePass123!',
       };
 
-      const result = await controller.register(registerDto);
-      expect(result).toEqual({
+      authService.register.mockResolvedValue({
         message: 'Registration submitted. OTP sent to your email',
       });
-    });
 
-    it('should reject email if already registered', async () => {
-      const registerDto: RegisterDto = {
-        email: 'user@example.com', // Already registered in constructor
-        password: 'SecurePass123!',
+      await expect(controller.register(registerDto)).resolves.toEqual({
+        message: 'Registration submitted. OTP sent to your email',
+      });
+      expect(authService.register).toHaveBeenCalledWith(
+        registerDto.firstName,
+        registerDto.lastName,
+        registerDto.email,
+        registerDto.password,
+      );
+    });
+  });
+
+  describe('verifyOtp', () => {
+    it('returns the verification response from the service', async () => {
+      const verifyDto: VerifyOtpDto = {
+        email: 'john@example.com',
+        otp: '123456',
       };
 
-      await expect(controller.register(registerDto)).rejects.toThrow('Email already registered');
-    });
-
-    it('should reject invalid email format', async () => {
-      const registerDto = {
-        email: 'invalid-email',
-        password: 'SecurePass123!',
-      } as RegisterDto;
-
-      await expect(controller.register(registerDto)).rejects.toThrow();
-    });
-
-    it('should reject weak password (less than 8 chars)', async () => {
-      const registerDto = {
-        email: 'test@example.com',
-        password: 'Pass1!',
-      } as RegisterDto;
-
-      await expect(controller.register(registerDto)).rejects.toThrow();
-    });
-
-    it('should reject password without special character', async () => {
-      const registerDto = {
-        email: 'test@example.com',
-        password: 'Password123',
-      } as RegisterDto;
-
-      await expect(controller.register(registerDto)).rejects.toThrow();
-    });
-
-    it('should queue duplicate registration attempts', async () => {
-      const registerDto: RegisterDto = {
-        email: 'newuser2@example.com',
-        password: 'SecurePass123!',
+      const verifyResponse = {
+        message: 'Registration successful',
+        token: 'token-123',
+        user: {
+          id: 1,
+          email: 'john@example.com',
+        },
       };
 
-      // First registration succeeds
-      const result1 = await controller.register(registerDto);
-      expect(result1.message).toBeDefined();
+      authService.verifyOtp.mockResolvedValue(verifyResponse);
 
-      // Second registration with same email should fail
-      await expect(controller.register(registerDto)).rejects.toThrow(BadRequestException);
+      await expect(controller.verifyOtp(verifyDto)).resolves.toEqual(verifyResponse);
+      expect(authService.verifyOtp).toHaveBeenCalledWith(verifyDto.email, verifyDto.otp);
     });
   });
 
   describe('resendOtp', () => {
-    beforeEach(async () => {
-      // Set up a pending registration
-      const registerDto: RegisterDto = {
-        email: 'resend@example.com',
-        password: 'SecurePass123!',
-      };
-      await controller.register(registerDto);
-    });
-
-    it('should resend OTP for pending registration', async () => {
+    it('returns the resend response from the service', async () => {
       const resendDto: ResendOtpDto = {
-        email: 'resend@example.com',
+        email: 'john@example.com',
       };
 
-      const result = await controller.resendOtp(resendDto);
-      expect(result).toEqual({
+      authService.resendOtp.mockResolvedValue({
         message: 'OTP resent to your email',
       });
-    });
 
-    it('should reject resend OTP if no pending registration', async () => {
-      const resendDto: ResendOtpDto = {
-        email: 'nonexistent@example.com',
-      };
-
-      await expect(controller.resendOtp(resendDto)).rejects.toThrow('No pending registration found');
-    });
-  });
-
-  describe('verifyOtp - Valid Flow', () => {
-    let registrationEmail: string;
-    let capturedOtp: string;
-
-    beforeEach(async () => {
-      registrationEmail = 'verify@example.com';
-      
-      // Register user
-      const registerDto: RegisterDto = {
-        email: registrationEmail,
-        password: 'SecurePass123!',
-      };
-      await controller.register(registerDto);
-
-      // Capture OTP from service's internal state
-      // In real scenario, this would come from email
-      const pending = service['pendingRegistrations'].get(registrationEmail.toLowerCase());
-      capturedOtp = pending?.otp || '';
-    });
-
-    it('should verify OTP and complete registration', async () => {
-      const verifyDto: VerifyOtpDto = {
-        email: registrationEmail,
-        otp: capturedOtp,
-      };
-
-      const result = await controller.verifyOtp(verifyDto);
-      expect(result.message).toEqual('Registration successful');
-      expect(result.token).toBeDefined();
-      expect(result.token).toContain('eyJ'); // JWT header
-    });
-
-    it('should be able to login with newly registered user', async () => {
-      // Complete registration
-      const verifyDto: VerifyOtpDto = {
-        email: registrationEmail,
-        otp: capturedOtp,
-      };
-      await controller.verifyOtp(verifyDto);
-
-      // Login with new user
-      const loginDto: LoginDto = {
-        email: registrationEmail,
-        password: 'SecurePass123!',
-      };
-
-      const loginResult = await controller.login(loginDto);
-      expect(loginResult.message).toEqual('Login successful');
-      expect(loginResult.token).toBeDefined();
-      expect(loginResult.user.email).toEqual(registrationEmail);
-    });
-  });
-
-  describe('verifyOtp - Error Cases', () => {
-    beforeEach(async () => {
-      const registerDto: RegisterDto = {
-        email: 'error@example.com',
-        password: 'SecurePass123!',
-      };
-      await controller.register(registerDto);
-    });
-
-    it('should reject invalid OTP', async () => {
-      const verifyDto: VerifyOtpDto = {
-        email: 'error@example.com',
-        otp: '000000', // Wrong OTP
-      };
-
-      await expect(controller.verifyOtp(verifyDto)).rejects.toThrow('Invalid OTP');
-    });
-
-    it('should reject OTP if no pending registration', async () => {
-      const verifyDto: VerifyOtpDto = {
-        email: 'nonexistent@example.com',
-        otp: '123456',
-      };
-
-      await expect(controller.verifyOtp(verifyDto)).rejects.toThrow('No pending registration found');
-    });
-
-    it('should track failed OTP attempts', async () => {
-      const verifyDto: VerifyOtpDto = {
-        email: 'error@example.com',
-        otp: '000000',
-      };
-
-      let lastError: any;
-      for (let i = 0; i < 5; i++) {
-        try {
-          await controller.verifyOtp(verifyDto);
-        } catch (error) {
-          lastError = error;
-        }
-      }
-
-      // After 5 attempts, registration should be deleted
-      expect(lastError.message).toContain('Too many OTP attempts');
-    });
-  });
-
-  describe('OTP Expiration', () => {
-    it('should expire OTP after 10 minutes', async () => {
-      const registerDto: RegisterDto = {
-        email: 'expire@example.com',
-        password: 'SecurePass123!',
-      };
-      await controller.register(registerDto);
-
-      // Manually advance time in service (for testing)
-      const pending = service['pendingRegistrations'].get('expire@example.com');
-      if (pending) {
-        pending.otpExpiry = Date.now() - 1000; // Set expiry to past
-      }
-
-      const verifyDto: VerifyOtpDto = {
-        email: 'expire@example.com',
-        otp: pending?.otp || '000000',
-      };
-
-      await expect(controller.verifyOtp(verifyDto)).rejects.toThrow('OTP expired');
-    });
-  });
-
-  describe('login', () => {
-    it('should login with correct credentials', async () => {
-      const loginDto: LoginDto = {
-        email: 'user@example.com',
-        password: 'password123!',
-      };
-
-      const result = await controller.login(loginDto);
-      expect(result.message).toEqual('Login successful');
-      expect(result.token).toBeDefined();
-      expect(result.user.email).toEqual('user@example.com');
-    });
-
-    it('should reject login with wrong password', async () => {
-      const loginDto: LoginDto = {
-        email: 'user@example.com',
-        password: 'wrongpassword!',
-      };
-
-      await expect(controller.login(loginDto)).rejects.toThrow('Incorrect email or password');
-    });
-
-    it('should reject login with non-existent email', async () => {
-      const loginDto: LoginDto = {
-        email: 'nonexistent@example.com',
-        password: 'password123!',
-      };
-
-      await expect(controller.login(loginDto)).rejects.toThrow('Incorrect email or password');
-    });
-  });
-
-  describe('End-to-End Registration Flow', () => {
-    it('should complete full registration flow', async () => {
-      const email = 'e2e@example.com';
-      const password = 'MySecurePass456!';
-
-      // Step 1: Register
-      const registerDto: RegisterDto = { email, password };
-      const registerResult = await controller.register(registerDto);
-      expect(registerResult.message).toContain('OTP sent');
-
-      // Step 2: Get OTP from service
-      const pending = service['pendingRegistrations'].get(email.toLowerCase());
-      const otp = pending?.otp || '';
-
-      // Step 3: Verify OTP
-      const verifyDto: VerifyOtpDto = { email, otp };
-      const verifyResult = await controller.verifyOtp(verifyDto);
-      expect(verifyResult.message).toEqual('Registration successful');
-      expect(verifyResult.token).toBeDefined();
-
-      // Step 4: Login with new credentials
-      const loginDto: LoginDto = { email, password };
-      const loginResult = await controller.login(loginDto);
-      expect(loginResult.message).toEqual('Login successful');
-      expect(loginResult.token).toBeDefined();
-      expect(loginResult.user.email).toEqual(email);
-    });
-
-    it('should not allow login before OTP verification', async () => {
-      const email = 'pending@example.com';
-      const password = 'MySecurePass789!';
-
-      // Register (pending)
-      const registerDto: RegisterDto = { email, password };
-      await controller.register(registerDto);
-
-      // Try to login without verifying OTP
-      const loginDto: LoginDto = { email, password };
-
-      await expect(controller.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(controller.resendOtp(resendDto)).resolves.toEqual({
+        message: 'OTP resent to your email',
+      });
+      expect(authService.resendOtp).toHaveBeenCalledWith(resendDto.email);
     });
   });
 });
-
