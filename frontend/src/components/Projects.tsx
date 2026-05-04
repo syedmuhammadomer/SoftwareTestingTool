@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PlusCircle, MoreVertical } from 'lucide-react'
 import { useRouter } from 'next/router'
 import Button from './Button'
+import { User } from '@/types'
+import { hasPermission } from '@/utils/access'
 
 type ProjectSummary = {
   id: number
@@ -11,8 +13,10 @@ type ProjectSummary = {
   status: string
   description?: string
   features?: { title?: string }[]
+  userStories?: { id?: number }[]
   testCases?: { testCaseId?: string }[]
   createdAt?: string
+  progress?: number
 }
 
 interface ProjectsProps {
@@ -23,6 +27,25 @@ interface ProjectsProps {
 export default function Projects({ projects, onDeleteRequest }: ProjectsProps) {
   const router = useRouter()
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null)
+  const [user, setUser] = useState<User | null>(null)
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('userData')
+    setUser(storedUser ? (JSON.parse(storedUser) as User) : null)
+  }, [])
+
+  const canCreateProject = hasPermission(user, 'projects:create')
+
+  const statusClassName = (status: string) => {
+    if (status === 'completed') {
+      return 'bg-slate-500/10 text-slate-300'
+    }
+    if (status === 'processing' || status === 'queued') {
+      return 'bg-white/10 text-slate-300'
+    }
+    return 'bg-slate-500/10 text-slate-300'
+  }
+
   return (
     <div>
       {/* header */}
@@ -36,7 +59,7 @@ export default function Projects({ projects, onDeleteRequest }: ProjectsProps) {
             <input
               type="text"
               placeholder="Search projects..."
-              className="w-full lg:w-64 pl-10 pr-4 py-2 rounded-lg bg-slate-800 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              className="w-full lg:w-64 pl-10 pr-4 py-2 rounded-lg bg-slate-800 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-white"
             />
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
               🔍
@@ -48,12 +71,14 @@ export default function Projects({ projects, onDeleteRequest }: ProjectsProps) {
           <select className="bg-slate-800 text-slate-100 rounded-lg py-2 px-3">
             <option>Sort by: Recent</option>
           </select>
-          <Button
-            className="ml-auto bg-cyan-500 hover:bg-cyan-600 text-white"
-            onClick={() => router.push('/projects/new')}
-          >
-            <PlusCircle className="w-5 h-5 mr-2" /> New Project
-          </Button>
+          {canCreateProject ? (
+            <Button
+              className="ml-auto bg-white hover:bg-slate-200 text-white"
+              onClick={() => router.push('/projects/new')}
+            >
+              <PlusCircle className="w-5 h-5 mr-2" /> New Project
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -84,7 +109,7 @@ export default function Projects({ projects, onDeleteRequest }: ProjectsProps) {
                           setMenuOpenId(null)
                           onDeleteRequest(project)
                         }}
-                        className="w-full px-3 py-2 text-left text-sm text-slate-100 hover:bg-rose-500/10 transition"
+                        className="w-full px-3 py-2 text-left text-sm text-slate-100 hover:bg-slate-500/10 transition"
                       >
                         Delete project
                       </button>
@@ -92,27 +117,36 @@ export default function Projects({ projects, onDeleteRequest }: ProjectsProps) {
                   )}
                 </div>
                 <span
-                  className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                    project.status === 'completed'
-                      ? 'bg-emerald-500/10 text-emerald-300'
-                      : project.status === 'processing'
-                        ? 'bg-cyan-500/10 text-cyan-300'
-                        : 'bg-rose-500/10 text-rose-300'
-                  }`}
+                  className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${statusClassName(project.status)}`}
                 >
                   {project.status.toUpperCase()}
                 </span>
-                <p className="text-sm text-slate-400">{project.description || 'Automated QA insight in progress'}</p>
-                <div className="grid grid-cols-2 gap-3 text-slate-300 text-xs">
+                <p className="app-subtext">{project.description || 'Automated QA insight in progress'}</p>
+                <div className="grid grid-cols-3 gap-3 text-slate-300 text-xs">
                   <div>
                     <p className="text-2xl font-semibold text-white">{project.features?.length ?? 0}</p>
                     <p>Features</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-semibold text-white">{project.userStories?.length ?? 0}</p>
+                    <p>Stories</p>
                   </div>
                   <div>
                     <p className="text-2xl font-semibold text-white">{project.testCases?.length ?? 0}</p>
                     <p>Test Cases</p>
                   </div>
                 </div>
+                {(project.status === 'queued' || project.status === 'processing') && typeof project.progress === 'number' ? (
+                  <div className="space-y-2">
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-700">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-black to-slate-800 transition-all"
+                        style={{ width: `${project.progress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500">Analysis progress: {project.progress}%</p>
+                  </div>
+                ) : null}
                 <div className="text-xs h-4 text-slate-500">
                   Created {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '—'}
                 </div>

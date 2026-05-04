@@ -49,17 +49,17 @@ export default function Login() {
 
           {/* Success Message */}
           {submitted && (
-            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg flex items-center gap-2">
-              <CheckCircle size={20} className="text-green-500" />
-              <span className="text-green-400 text-sm">Login successful!</span>
+            <div className="mb-6 p-4 bg-slate-500/10 border border-slate-500/50 rounded-lg flex items-center gap-2">
+              <CheckCircle size={20} className="text-slate-500" />
+              <span className="text-slate-400 text-sm">Login successful!</span>
             </div>
           )}
 
           {/* Auth Error Message */}
           {authError && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg flex items-center gap-2">
-              <AlertCircle size={20} className="text-red-500" />
-              <span className="text-red-400 text-sm">{authError}</span>
+            <div className="mb-6 p-4 bg-slate-500/10 border border-slate-500/50 rounded-lg flex items-center gap-2">
+              <AlertCircle size={20} className="text-slate-500" />
+              <span className="text-slate-400 text-sm">{authError}</span>
             </div>
           )}
 
@@ -84,19 +84,19 @@ export default function Login() {
                   disabled={loading}
                   className={`w-full pl-10 pr-4 py-3 rounded-lg border transition outline-none ${
                     touched.email && errors.email
-                      ? 'border-red-500 bg-red-500/5 text-white placeholder-slate-500'
-                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-cyan-500'
+                      ? 'border-slate-500 bg-slate-500/5 text-white placeholder-slate-500'
+                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-white'
                   } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
               {touched.email && errors.email && (
-                <div className="mt-2 flex items-center gap-1 text-red-400 text-sm">
+                <div className="mt-2 flex items-center gap-1 text-slate-400 text-sm">
                   <AlertCircle size={16} />
                   {errors.email}
                 </div>
               )}
               {touched.email && !errors.email && email && (
-                <div className="mt-2 flex items-center gap-1 text-green-400 text-sm">
+                <div className="mt-2 flex items-center gap-1 text-slate-400 text-sm">
                   <CheckCircle size={16} />
                   Email is valid
                 </div>
@@ -122,19 +122,19 @@ export default function Login() {
                   disabled={loading}
                   className={`w-full pl-10 pr-4 py-3 rounded-lg border transition outline-none ${
                     touched.password && errors.password
-                      ? 'border-red-500 bg-red-500/5 text-white placeholder-slate-500'
-                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-cyan-500'
+                      ? 'border-slate-500 bg-slate-500/5 text-white placeholder-slate-500'
+                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-white'
                   } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
               {touched.password && errors.password && (
-                <div className="mt-2 flex items-center gap-1 text-red-400 text-sm">
+                <div className="mt-2 flex items-center gap-1 text-slate-400 text-sm">
                   <AlertCircle size={16} />
                   {errors.password}
                 </div>
               )}
               {touched.password && !errors.password && password && (
-                <div className="mt-2 flex items-center gap-1 text-green-400 text-sm">
+                <div className="mt-2 flex items-center gap-1 text-slate-400 text-sm">
                   <CheckCircle size={16} />
                   Password is valid
                 </div>
@@ -147,7 +147,7 @@ export default function Login() {
               isLoading={loading}
               className="w-full mt-8"
               style={{
-                background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)'
+                background: 'linear-gradient(135deg, #000000 0%, #18181b 100%)'
               }}
             >
               {loading ? 'Logging in...' : 'Login'}
@@ -155,9 +155,9 @@ export default function Login() {
 
             {/* Sign Up Link */}
             <div className="text-center mt-6">
-              <span className="text-slate-400 text-sm">
+              <span className="app-subtext">
                 Don&apos;t have an account?{' '}
-                <Link href="/register" className="text-cyan-400 hover:text-cyan-300 font-semibold">
+                <Link href="/register" className="text-slate-200 hover:text-slate-300 font-semibold">
                   Sign up
                 </Link>
               </span>

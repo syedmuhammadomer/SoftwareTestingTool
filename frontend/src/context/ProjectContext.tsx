@@ -7,14 +7,24 @@ type FeatureItem = {
   description?: string
 }
 
-type UserStoryItem = {
+export type UserStoryItem = {
+  id?: number
+  title?: string
   actor: string
   goal: string
+  description?: string
   benefit?: string
   acceptanceCriteria?: string
+  priority?: 'High' | 'Medium' | 'Low'
+  status?: 'Backlog' | 'In Progress' | 'QA Review' | 'Done'
+  dueDate?: string
+  assigneeId?: string
+  assigneeName?: string
+  attachmentNames?: string[]
 }
 
-type TestCaseItem = {
+export type TestCaseItem = {
+  id?: number
   testCaseId: string
   title: string
   preconditions?: string
@@ -29,6 +39,10 @@ type RtmEntry = {
   linkedTestCases?: string[]
 }
 
+type ProjectAiResponse = {
+  summary?: string
+}
+
 export type ProjectRecord = {
   id: number
   name: string
@@ -39,6 +53,7 @@ export type ProjectRecord = {
   userStories?: UserStoryItem[]
   testCases?: TestCaseItem[]
   rtm?: RtmEntry[]
+  aiResponse?: ProjectAiResponse
   createdAt?: string
   updatedAt?: string
 }
@@ -79,7 +94,15 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
       setLoading(true)
       setError(null)
       const response = await axios.get<ProjectRecord[]>(config.endpoints.projects)
-      const nextProjects = response.data
+      const storedUser =
+        typeof window !== 'undefined' ? localStorage.getItem('userData') : null
+      const parsedUser = storedUser
+        ? (JSON.parse(storedUser) as { assignedProject?: string | null; permissions?: string[] })
+        : null
+      const nextProjects =
+        parsedUser?.permissions?.includes('*') || !parsedUser?.assignedProject
+          ? response.data
+          : response.data.filter((project) => project.name === parsedUser.assignedProject)
       setProjects(nextProjects)
 
       setSelectedProjectIdState((currentId) => {

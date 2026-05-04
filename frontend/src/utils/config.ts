@@ -1,24 +1,50 @@
-// Environment configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+const configuredApiBaseUrl =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL
+
+export const getApiBaseUrl = () => {
+  if (configuredApiBaseUrl) {
+    return configuredApiBaseUrl
+  }
+
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location
+    return `${protocol}//${hostname}:3002`
+  }
+
+  return 'http://localhost:3002'
+}
+
+const getEndpoints = () => {
+  const apiBaseUrl = getApiBaseUrl()
+  return {
+    login: `${apiBaseUrl}/auth/login`,
+    logout: `${apiBaseUrl}/auth/logout`,
+    me: `${apiBaseUrl}/auth/me`,
+    projects: `${apiBaseUrl}/api/projects`,
+    health: `${apiBaseUrl}/health`,
+    root: `${apiBaseUrl}/`,
+  }
+}
 
 export const config = {
-  apiBaseUrl: API_BASE_URL,
-  endpoints: {
-    login: `${API_BASE_URL}/auth/login`,
-    logout: `${API_BASE_URL}/auth/logout`,
-    me: `${API_BASE_URL}/auth/me`,
-    projects: `${API_BASE_URL}/api/projects`,
-    health: `${API_BASE_URL}/health`,
-    root: `${API_BASE_URL}/`,
-  }
+  get apiBaseUrl() {
+    return getApiBaseUrl()
+  },
+  get endpoints() {
+    return getEndpoints()
+  },
 }
 
 // API error handler
 export const handleApiError = (error: unknown): string => {
   if (typeof error === 'object' && error !== null) {
-    const err = error as { response?: { data?: { message?: string } }; message?: string }
+    const err = error as { response?: { data?: { message?: string } }; message?: string; code?: string }
     if (err.response?.data?.message) {
       return err.response.data.message
+    }
+    if (err.code === 'ERR_NETWORK') {
+      return `Network error. Frontend tried to reach ${getApiBaseUrl()}, but the browser could not connect.`
     }
     if (err.message) {
       return err.message

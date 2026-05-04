@@ -8,7 +8,7 @@ export default function Navbar() {
     <nav className="border-b border-slate-800 bg-slate-950">
       <div className="container mx-auto px-6 lg:px-12 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2 font-bold text-lg">
-          <div className="text-cyan-400">
+          <div className="text-slate-200">
             <Zap size={24} strokeWidth={1.5} />
           </div>
           <span className="text-white">TestGen AI</span>
@@ -28,7 +28,7 @@ export default function Navbar() {
             </Button>
           </Link>
           <Link href="/register">
-            <Button variant="primary" size="sm" className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold px-6 py-2 rounded-full">
+            <Button variant="primary" size="sm" className="bg-white hover:bg-slate-200 text-slate-950 font-semibold px-6 py-2 rounded-full">
               Get Started
             </Button>
           </Link>

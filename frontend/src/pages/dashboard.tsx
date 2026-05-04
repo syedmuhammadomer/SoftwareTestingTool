@@ -9,6 +9,10 @@ import {
 import Layout from '@/components/Layout'
 import Button from '@/components/Button'
 import { ProjectRecord, useProjectContext } from '@/context/ProjectContext'
+import { User as AppUser } from '@/types'
+import { hasPermission } from '@/utils/access'
+import { getApiBaseUrl, handleApiError } from '@/utils/config'
+import PageLoading from '@/components/PageLoading'
 
 interface DashboardStats {
   totalProjects: number
@@ -55,7 +59,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [recentActivity] = useState<RecentActivity[]>(mockRecentActivity)
   const [teamActivity] = useState<TeamActivity[]>(mockTeamActivity)
-  const { projects, selectedProject, setSelectedProjectId, reloadProjects } = useProjectContext()
+  const { projects, selectedProject, setSelectedProjectId, reloadProjects, loading: projectsLoading } = useProjectContext()
 
   // New Project Modal State
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false)
@@ -67,9 +71,8 @@ export default function Dashboard() {
   const [formError, setFormError] = useState('')
   const [serverError, setServerError] = useState('')
   const [projectResult, setProjectResult] = useState<ProjectRecord | null>(null)
+  const [user, setUser] = useState<AppUser | null>(null)
   const pollingRef = useRef<NodeJS.Timeout | null>(null)
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'
-
   const stats = useMemo<DashboardStats>(() => {
     const totalProjects = projects.length
     const testCasesGenerated = projects.reduce((total, project) => total + (project.testCases?.length ?? 0), 0)
@@ -96,8 +99,12 @@ export default function Dashboard() {
       router.push('/login')
       return
     }
+    const storedUser = localStorage.getItem('userData')
+    setUser(storedUser ? (JSON.parse(storedUser) as AppUser) : null)
     setLoading(false)
   }, [router])
+
+  const canCreateProject = hasPermission(user, 'projects:create')
 
   useEffect(() => {
     return () => {
@@ -137,7 +144,7 @@ export default function Dashboard() {
 
     const fetchStatus = async () => {
       try {
-        const { data } = await axios.get(`${API_BASE_URL}/api/projects/${projectId}`)
+        const { data } = await axios.get(`${getApiBaseUrl()}/api/projects/${projectId}`)
         const applyProgressValue = (value?: number) => {
           if (typeof value === 'number') {
             const normalized = Math.min(100, Math.max(0, value))
@@ -169,7 +176,7 @@ export default function Dashboard() {
         }
       } catch (error) {
         console.error('Project status poll failed', error)
-        setServerError('Unable to reach the projects API for updates.')
+        setServerError(handleApiError(error))
         setProcessingMessage('Status polling paused')
         clearPolling()
       }
@@ -201,7 +208,7 @@ export default function Dashboard() {
     formData.append('srsDocument', srsFile)
 
     try {
-      const { data } = await axios.post(`${API_BASE_URL}/api/projects`, formData)
+      const { data } = await axios.post(`${getApiBaseUrl()}/api/projects`, formData)
       await reloadProjects()
       setSelectedProjectId(data.projectId)
       setProcessingProgress(35)
@@ -211,19 +218,15 @@ export default function Dashboard() {
       setSrsFile(null)
     } catch (error) {
       console.error(error)
-      setServerError('Unable to queue the project. Try again with a different document.')
+      setServerError(handleApiError(error))
       setProcessingProgress(0)
     } finally {
       setIsSubmittingProject(false)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-cyan-400 text-lg">Loading...</div>
-      </div>
-    )
+  if (loading || projectsLoading) {
+    return <PageLoading kind="dashboard" />
   }
 
   return (
@@ -235,11 +238,11 @@ export default function Dashboard() {
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-400 text-sm font-medium">Total Projects</p>
+                  <p className="app-subtext font-medium">Total Projects</p>
                   <p className="text-3xl font-bold text-white">{stats.totalProjects}</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                  <FolderOpen className="w-6 h-6 text-blue-400" />
+                <div className="w-12 h-12 bg-slate-500/10 rounded-lg flex items-center justify-center">
+                  <FolderOpen className="w-6 h-6 text-slate-400" />
                 </div>
               </div>
             </div>
@@ -247,11 +250,11 @@ export default function Dashboard() {
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-400 text-sm font-medium">Test Cases Generated</p>
+                  <p className="app-subtext font-medium">Test Cases Generated</p>
                   <p className="text-3xl font-bold text-white">{stats.testCasesGenerated.toLocaleString()}</p>
                 </div>
-                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
-                  <TestTube className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 bg-slate-500/10 rounded-lg flex items-center justify-center">
+                  <TestTube className="w-6 h-6 text-slate-400" />
                 </div>
               </div>
             </div>
@@ -259,11 +262,11 @@ export default function Dashboard() {
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-400 text-sm font-medium">Scenarios Generated</p>
+                  <p className="app-subtext font-medium">Scenarios Generated</p>
                   <p className="text-3xl font-bold text-white">{stats.scenariosGenerated}</p>
                 </div>
-                <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-purple-400" />
+                <div className="w-12 h-12 bg-slate-500/10 rounded-lg flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-slate-400" />
                 </div>
               </div>
             </div>
@@ -271,11 +274,11 @@ export default function Dashboard() {
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-400 text-sm font-medium">Requirements Processed</p>
+                  <p className="app-subtext font-medium">Requirements Processed</p>
                   <p className="text-3xl font-bold text-white">{stats.requirementsProcessed}</p>
                 </div>
-                <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-orange-400" />
+                <div className="w-12 h-12 bg-slate-500/10 rounded-lg flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-slate-400" />
                 </div>
               </div>
             </div>
@@ -286,7 +289,7 @@ export default function Dashboard() {
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-slate-400 text-sm font-medium">AI Usage Remaining</p>
+                  <p className="app-subtext font-medium">AI Usage Remaining</p>
                   <p className="text-3xl font-bold text-white">{stats.aiUsageRemaining.toLocaleString()}</p>
                   <p className="text-xs text-slate-400 mt-1">tokens this month</p>
                   {/* Pie Chart */}
@@ -302,20 +305,20 @@ export default function Dashboard() {
                         <path
                           d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                           fill="none"
-                          stroke="#06b6d4"
+                          stroke="#ffffff"
                           strokeWidth="2"
                           strokeDasharray={`${(stats.aiUsageRemaining / 1000) * 100}, 100`}
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-xs font-medium text-cyan-400">
+                        <span className="text-xs font-medium text-slate-200">
                           {Math.round((stats.aiUsageRemaining / 1000) * 100)}%
                         </span>
                       </div>
                     </div>
                     <div className="flex flex-col space-y-1">
                       <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-cyan-400 rounded-full"></div>
+                        <div className="w-3 h-3 bg-slate-200 rounded-full"></div>
                         <span className="text-xs text-slate-300">Remaining</span>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -325,8 +328,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-cyan-400" />
+                <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-slate-200" />
                 </div>
               </div>
             </div>
@@ -334,12 +337,12 @@ export default function Dashboard() {
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-slate-400 text-sm font-medium">Risk Score</p>
+                  <p className="app-subtext font-medium">Risk Score</p>
                   <p className="text-3xl font-bold text-white">{stats.riskScore}%</p>
                   {/* Arrow Chart */}
                   <div className="mt-4">
                     <div className="relative w-full h-8 bg-slate-800 rounded-full overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-black via-slate-800 to-black"></div>
                       <div
                         className="absolute top-0 bottom-0 w-1 bg-white transition-all duration-300"
                         style={{ left: `${stats.riskScore}%` }}
@@ -358,8 +361,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6 text-red-400" />
+                <div className="w-12 h-12 bg-slate-500/10 rounded-lg flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-slate-400" />
                 </div>
               </div>
             </div>
@@ -367,21 +370,23 @@ export default function Dashboard() {
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-400 text-sm font-medium">Quick Actions</p>
+                  <p className="app-subtext font-medium">Quick Actions</p>
                   <div className="mt-4 space-y-2">
                     <Button className="w-full justify-start" variant="outline" size="sm">
                       <Sparkles className="w-4 h-4 mr-2" />
                       Generate Tests
                     </Button>
-                    <Button 
-                      className="w-full justify-start" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setIsNewProjectModalOpen(true)}
-                    >
-                      <FolderOpen className="w-4 h-4 mr-2" />
-                      New Project
-                    </Button>
+                    {canCreateProject ? (
+                      <Button 
+                        className="w-full justify-start" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setIsNewProjectModalOpen(true)}
+                      >
+                        <FolderOpen className="w-4 h-4 mr-2" />
+                        New Project
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -389,7 +394,7 @@ export default function Dashboard() {
           </div>
 
           {serverError && (
-            <div className="rounded-xl border border-rose-800 bg-rose-900/40 p-4 text-sm text-rose-200">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-sm text-slate-200">
               {serverError}
             </div>
           )}
@@ -405,10 +410,10 @@ export default function Dashboard() {
                   </div>
                   <span
                     className={`px-3 py-1 text-xs font-semibold rounded-full ${activeProject.status === 'completed'
-                      ? 'bg-emerald-500/10 text-emerald-300'
+                      ? 'bg-slate-500/10 text-slate-300'
                       : activeProject.status === 'processing'
-                        ? 'bg-cyan-500/10 text-cyan-300'
-                        : 'bg-rose-500/10 text-rose-300'
+                        ? 'bg-white/10 text-slate-300'
+                        : 'bg-slate-500/10 text-slate-300'
                     }`}
                   >
                     {activeProject.status.toUpperCase()}
@@ -416,20 +421,20 @@ export default function Dashboard() {
                 </div>
                 <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                   <div
-                    className="h-2 bg-gradient-to-r from-cyan-500 to-blue-500 transition-all"
+                    className="h-2 bg-gradient-to-r from-black to-slate-800 transition-all"
                     style={{ width: `${processingProgress}%` }}
                   />
                 </div>
                 {processingMessage && <p className="text-xs text-slate-400">{processingMessage}</p>}
                 {activeProject.failureReason && (
-                  <p className="text-xs text-rose-400">Failure note: {activeProject.failureReason}</p>
+                  <p className="text-xs text-slate-400">Failure note: {activeProject.failureReason}</p>
                 )}
               </div>
 
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
                   <div className="flex items-center gap-2 text-slate-300">
-                    <ClipboardList className="w-5 h-5 text-cyan-400" />
+                    <ClipboardList className="w-5 h-5 text-slate-200" />
                     <p className="text-sm font-semibold">Features &amp; Modules</p>
                   </div>
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
@@ -458,7 +463,7 @@ export default function Dashboard() {
                       ) : (
                         (activeProject.userStories ?? []).map((story, index) => (
                           <div key={`story-${index}`} className="rounded-xl border border-slate-800 p-3 bg-slate-950/30">
-                            <p className="text-xs text-cyan-300 uppercase tracking-wider">{story.actor}</p>
+                            <p className="text-xs text-slate-300 uppercase tracking-wider">{story.actor}</p>
                             <p className="text-sm font-semibold text-white">{story.goal}</p>
                             {story.benefit && (
                               <p className="text-xs text-slate-400 italic mt-1">Benefit: {story.benefit}</p>
@@ -496,7 +501,7 @@ export default function Dashboard() {
                               <p className="text-xs text-slate-400 mt-1">Steps: {testCase.steps}</p>
                             )}
                             {testCase.expectedResult && (
-                              <p className="text-xs text-emerald-300 mt-1">Expected: {testCase.expectedResult}</p>
+                              <p className="text-xs text-slate-300 mt-1">Expected: {testCase.expectedResult}</p>
                             )}
                           </div>
                         ))
@@ -509,7 +514,7 @@ export default function Dashboard() {
               <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
                 <div className="flex items-center justify-between text-xs uppercase tracking-wider text-slate-500">
                   <div className="flex items-center gap-2">
-                    <ClipboardList className="w-4 h-4 text-cyan-400" />
+                    <ClipboardList className="w-4 h-4 text-slate-200" />
                     <span>Requirement Traceability Matrix</span>
                   </div>
                   <span>{(activeProject.rtm ?? []).length} entries</span>
@@ -522,7 +527,7 @@ export default function Dashboard() {
                       <div key={entry.requirementId} className="rounded-xl border border-slate-800 p-3 bg-slate-950/30 space-y-1">
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-slate-400">Requirement</p>
-                          <span className="text-xs font-semibold text-cyan-300">{entry.requirementId}</span>
+                          <span className="text-xs font-semibold text-slate-300">{entry.requirementId}</span>
                         </div>
                         <p className="text-sm text-white">{entry.description}</p>
                         {entry.linkedUserStories?.length ? (
@@ -540,7 +545,7 @@ export default function Dashboard() {
           )}
 
           {!activeProject && (
-            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 text-sm text-slate-400">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-6 app-subtext">
               Select a project from the dropdown next to the logo to view its user stories, RTM, test cases, and other details.
             </div>
           )}
@@ -557,18 +562,18 @@ export default function Dashboard() {
                 {recentActivity.map((activity) => (
                   <div key={activity.id} className="flex items-start space-x-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      activity.status === 'success' ? 'bg-green-500/10' :
-                      activity.status === 'warning' ? 'bg-yellow-500/10' : 'bg-red-500/10'
+                      activity.status === 'success' ? 'bg-slate-500/10' :
+                      activity.status === 'warning' ? 'bg-slate-500/10' : 'bg-slate-500/10'
                     }`}>
                       {activity.status === 'success' ? (
                         <CheckCircle className={`w-4 h-4 ${
-                          activity.status === 'success' ? 'text-green-400' :
-                          activity.status === 'warning' ? 'text-yellow-400' : 'text-red-400'
+                          activity.status === 'success' ? 'text-slate-400' :
+                          activity.status === 'warning' ? 'text-slate-400' : 'text-slate-400'
                         }`} />
                       ) : activity.status === 'warning' ? (
-                        <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                        <AlertTriangle className="w-4 h-4 text-slate-400" />
                       ) : (
-                        <XCircle className="w-4 h-4 text-red-400" />
+                        <XCircle className="w-4 h-4 text-slate-400" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -606,7 +611,7 @@ export default function Dashboard() {
       </div>
 
       {/* New Project Modal */}
-      {isNewProjectModalOpen && (
+      {isNewProjectModalOpen && canCreateProject && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-slate-800">
@@ -622,7 +627,7 @@ export default function Dashboard() {
 
             <div className="p-6 space-y-6">
               {formError && (
-                <p className="text-xs text-rose-400">{formError}</p>
+                <p className="text-xs text-slate-400">{formError}</p>
               )}
 
               <div className="space-y-2">
@@ -632,7 +637,7 @@ export default function Dashboard() {
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                   placeholder="e.g. Banking Portal"
-                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all placeholder:text-slate-600"
+                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white transition-all placeholder:text-slate-600"
                 />
               </div>
 
@@ -641,24 +646,24 @@ export default function Dashboard() {
                 <div className="relative group">
                   <div className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg transition-all ${
                     srsFile
-                      ? 'border-cyan-500/50 bg-cyan-500/5'
+                      ? 'border-white/50 bg-white/5'
                       : 'border-slate-800 bg-slate-950/50 hover:bg-slate-800/50 hover:border-slate-700'
                   }`}>
                     <input
                       type="file"
                       onChange={(e) => setSrsFile(e.target.files?.[0] || null)}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      accept=".pdf,.doc,.docx"
+                      accept=".pdf,.docx"
                     />
                     <div className="flex flex-col items-center justify-center pt-5 pb-6 text-slate-400 group-hover:text-slate-300">
-                      <Upload className={`w-8 h-8 mb-3 ${srsFile ? 'text-cyan-400' : 'text-slate-500'}`} />
+                      <Upload className={`w-8 h-8 mb-3 ${srsFile ? 'text-slate-200' : 'text-slate-500'}`} />
                       {srsFile ? (
-                        <p className="text-sm font-medium text-cyan-400 truncate max-w-[220px]">
+                        <p className="text-sm font-medium text-slate-200 truncate max-w-[220px]">
                           {srsFile.name}
                         </p>
                       ) : (
                         <>
-                          <p className="mb-2 text-sm"><span className="font-semibold text-cyan-400">Click to upload</span> or drag and drop</p>
+                          <p className="mb-2 text-sm"><span className="font-semibold text-slate-200">Click to upload</span> or drag and drop</p>
                           <p className="text-xs text-slate-500">PDF, DOC, DOCX up to 10MB</p>
                         </>
                       )}
@@ -675,7 +680,7 @@ export default function Dashboard() {
                   </div>
                   <div className="h-2 bg-slate-800 rounded-full">
                     <div
-                      className="h-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-300"
+                      className="h-2 bg-gradient-to-r from-black to-slate-800 rounded-full transition-all duration-300"
                       style={{ width: `${processingProgress}%` }}
                     />
                   </div>
@@ -699,7 +704,7 @@ export default function Dashboard() {
                 onClick={handleProjectSubmission}
                 isLoading={isSubmittingProject}
                 disabled={isSubmittingProject}
-                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white border-0"
+                className="bg-gradient-to-r from-black to-slate-800 hover:from-slate-950 hover:to-black text-white border-0"
               >
                 Create Project
               </Button>

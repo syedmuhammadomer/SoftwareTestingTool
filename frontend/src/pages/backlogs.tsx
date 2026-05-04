@@ -3,11 +3,12 @@ import { useRouter } from 'next/router'
 import Layout from '@/components/Layout'
 import Backlogs from '@/components/Backlogs'
 import { useProjectContext } from '@/context/ProjectContext'
+import PageLoading from '@/components/PageLoading'
 
 export default function BacklogsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const { selectedProject } = useProjectContext()
+  const { selectedProject, loading: projectsLoading } = useProjectContext()
 
   useEffect(() => {
     const token = localStorage.getItem('authToken')
@@ -19,16 +20,12 @@ export default function BacklogsPage() {
   }, [router])
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-cyan-400 text-lg">Loading...</div>
-      </div>
-    )
+    return <PageLoading kind="board" />
   }
 
   return (
     <Layout>
-      <Backlogs selectedProject={selectedProject} />
+      <Backlogs selectedProject={selectedProject} isLoading={projectsLoading} />
     </Layout>
   )
 }

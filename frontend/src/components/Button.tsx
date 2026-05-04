@@ -32,7 +32,7 @@ export const Button: React.FC<ButtonProps> = ({
   const baseClasses = 'relative inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed'
 
   const variantClasses = {
-    primary: 'bg-cyan-500 hover:bg-cyan-600 text-white focus:ring-cyan-500 shadow-lg hover:shadow-xl',
+    primary: 'bg-gradient-to-r from-black to-slate-900 hover:from-slate-950 hover:to-black text-white focus:ring-slate-700 shadow-lg hover:shadow-xl',
     secondary: 'bg-slate-700 hover:bg-slate-600 text-white focus:ring-slate-500',
     outline: 'border border-slate-600 bg-transparent hover:bg-slate-700 text-slate-300 hover:text-white focus:ring-slate-500'
   }

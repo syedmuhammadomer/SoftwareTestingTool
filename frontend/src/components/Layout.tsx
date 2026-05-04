@@ -7,23 +7,27 @@ import {
 } from 'lucide-react'
 import Button from './Button'
 import { useProjectContext } from '@/context/ProjectContext'
+import { canAccessRoute, getFirstAccessibleRoute, hasPermission } from '@/utils/access'
+import { User as AppUser } from '@/types'
+import { Skeleton } from './Skeleton'
 
 interface NavigationItem {
   name: string
   icon: React.ComponentType<{ className?: string }>
   href: string
+  permission?: string
 }
 
 const navigationItems: NavigationItem[] = [
-  { name: 'Dashboard', icon: Home, href: '/dashboard' },
-  { name: 'Projects', icon: FolderOpen, href: '/projects' },
-  { name: 'Backlogs', icon: Kanban, href: '/backlogs' },
-  { name: 'User Stories', icon: Sparkles, href: '/user-stories' },
-  { name: 'Test Case Manager', icon: TestTube, href: '/test-manager' },
-  { name: 'RTM', icon: Link, href: '/rtm' },
-  { name: 'Documents', icon: File, href: '/documents' },
-  { name: 'Analytics', icon: BarChart, href: '/analytics' },
-  { name: 'Team', icon: Users, href: '/team' },
+  { name: 'Dashboard', icon: Home, href: '/dashboard', permission: 'dashboard:view' },
+  { name: 'Projects', icon: FolderOpen, href: '/projects', permission: 'projects:view_assigned' },
+  { name: 'Backlogs', icon: Kanban, href: '/backlogs', permission: 'backlogs:view' },
+  { name: 'User Stories', icon: Sparkles, href: '/user-stories', permission: 'user_stories:create' },
+  { name: 'Test Case Manager', icon: TestTube, href: '/test-manager', permission: 'test_cases:create' },
+  { name: 'RTM', icon: Link, href: '/rtm', permission: 'rtm:view' },
+  { name: 'Documents', icon: File, href: '/documents', permission: 'documents:view' },
+  { name: 'Analytics', icon: BarChart, href: '/analytics', permission: 'dashboard:view' },
+  { name: 'Team', icon: Users, href: '/team', permission: 'team:manage' },
   { name: 'Settings', icon: Settings, href: '/settings' },
   { name: 'Billing', icon: CreditCard, href: '/billing' },
 ]
@@ -34,7 +38,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const router = useRouter()
-  const [user, setUser] = useState<{ firstName: string; lastName: string; email: string } | null>(null)
+  const [user, setUser] = useState<AppUser | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { projects, selectedProjectId, setSelectedProjectId, loading: projectsLoading } = useProjectContext()
 
@@ -43,9 +47,22 @@ export default function Layout({ children }: LayoutProps) {
     if (userData) {
       setUser(JSON.parse(userData))
     } else {
-      setUser({ firstName: 'Demo', lastName: 'User', email: 'user@example.com' })
+      setUser({ id: 'demo-user', firstName: 'Demo', lastName: 'User', email: 'user@example.com', role: 'Admin', permissions: ['*'] })
     }
   }, [])
+
+  useEffect(() => {
+    if (!user) {
+      return
+    }
+    if (!canAccessRoute(user, router.pathname)) {
+      router.replace(getFirstAccessibleRoute(user))
+    }
+  }, [router, user])
+
+  const visibleNavigationItems = navigationItems.filter((item) =>
+    !item.permission || hasPermission(user, item.permission as never),
+  )
 
   const handleLogout = () => {
     localStorage.removeItem('authToken')
@@ -59,7 +76,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="flex flex-col h-full">
           <div className="border-b border-slate-800 px-4 py-5">
             <div className="flex items-center space-x-3 min-w-0">
-              <div className="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
                 <Zap className="w-6 h-6 text-white" />
               </div>
               <div className="min-w-0">
@@ -68,25 +85,29 @@ export default function Layout({ children }: LayoutProps) {
             </div>
           </div>
           <div className="px-4 pt-4">
-            <select
-              value={selectedProjectId ?? ''}
-              onChange={(event) => setSelectedProjectId(Number(event.target.value))}
-              disabled={projectsLoading || projects.length === 0}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {projects.length === 0 ? (
-                <option value="">{projectsLoading ? 'Loading projects...' : 'No projects yet'}</option>
-              ) : (
-                projects.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.name}
-                  </option>
-                ))
-              )}
-            </select>
+            {projectsLoading ? (
+              <Skeleton className="h-10 w-full rounded-lg" />
+            ) : (
+              <select
+                value={selectedProjectId ?? ''}
+                onChange={(event) => setSelectedProjectId(Number(event.target.value))}
+                disabled={projects.length === 0}
+                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {projects.length === 0 ? (
+                  <option value="">No projects yet</option>
+                ) : (
+                  projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))
+                )}
+              </select>
+            )}
           </div>
           <nav className="flex-1 px-4 py-6 space-y-2">
-            {navigationItems.map((item) => {
+            {visibleNavigationItems.map((item) => {
               const Icon = item.icon
               const current = router.pathname === item.href
               return (
@@ -94,7 +115,7 @@ export default function Layout({ children }: LayoutProps) {
                   key={item.name}
                   href={item.href}
                   className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200 ${current
-                    ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                    ? 'bg-white/10 text-slate-200 border border-white/20'
                     : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >
@@ -114,7 +135,7 @@ export default function Layout({ children }: LayoutProps) {
                 <p className="text-sm font-medium text-white truncate">
                   {user?.firstName} {user?.lastName}
                 </p>
-                <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                <p className="text-xs text-slate-400 truncate">{user?.role || user?.email}</p>
               </div>
               <Button
                 variant="outline"

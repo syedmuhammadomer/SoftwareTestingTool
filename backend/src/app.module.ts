@@ -10,6 +10,8 @@ import { EmailService } from './auth/email.service';
 import { User } from './auth/user.entity';
 import { PendingRegistration } from './auth/pending-registration.entity';
 import { ProjectsModule } from './projects/projects.module';
+import { TeamModule } from './team/team.module';
+import { TeamMember } from './team/entities/team-member.entity';
 
 @Module({
   imports: [
@@ -44,8 +46,9 @@ import { ProjectsModule } from './projects/projects.module';
       },
     }),
 
-    TypeOrmModule.forFeature([User, PendingRegistration]),
+    TypeOrmModule.forFeature([User, PendingRegistration, TeamMember]),
     ProjectsModule,
+    TeamModule,
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService, EmailService],

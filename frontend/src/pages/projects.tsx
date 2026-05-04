@@ -7,13 +7,16 @@ import Layout from '@/components/Layout'
 import Projects from '@/components/Projects'
 import Button from '@/components/Button'
 import { config, handleApiError } from '@/utils/config'
+import PageLoading from '@/components/PageLoading'
 
 type ProjectSummary = {
   id: number
   name: string
   status: string
   features?: { title?: string }[]
+  userStories?: { id?: number }[]
   testCases?: { testCaseId?: string }[]
+  progress?: number
   updatedAt?: string
   createdAt?: string
 }
@@ -58,22 +61,18 @@ export default function ProjectsPage() {
   }, [router])
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-cyan-400 text-lg">Loading...</div>
-      </div>
-    )
+    return <PageLoading kind="projects" />
   }
 
   return (
     <Layout>
-      <div className="mb-6 text-sm text-slate-400">
+      <div className="mb-6 app-subtext">
         Server status: {serverState === 'ready' ? 'Healthy' : serverState === 'down' ? 'Unavailable' : 'Checking...'}
       </div>
       {actionMessage && (
         <div
           className={`mb-4 text-sm ${
-            actionMessage.type === 'success' ? 'text-emerald-300' : 'text-rose-400'
+            actionMessage.type === 'success' ? 'text-slate-300' : 'text-slate-400'
           }`}
         >
           {actionMessage.text}

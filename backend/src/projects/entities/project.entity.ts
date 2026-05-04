@@ -37,16 +37,16 @@ export class Project {
   @Column({ type: 'text', nullable: true })
   failureReason?: string;
 
-  @OneToMany(() => Feature, (feature) => feature.project, { cascade: true, eager: true })
+  @OneToMany(() => Feature, (feature) => feature.project, { cascade: true })
   features: Feature[];
 
-  @OneToMany(() => UserStory, (userStory) => userStory.project, { cascade: true, eager: true })
+  @OneToMany(() => UserStory, (userStory) => userStory.project, { cascade: true })
   userStories: UserStory[];
 
-  @OneToMany(() => TestCase, (testCase) => testCase.project, { cascade: true, eager: true })
+  @OneToMany(() => TestCase, (testCase) => testCase.project, { cascade: true })
   testCases: TestCase[];
 
-  @OneToMany(() => RtmEntry, (rtm) => rtm.project, { cascade: true, eager: true })
+  @OneToMany(() => RtmEntry, (rtm) => rtm.project, { cascade: true })
   rtm: RtmEntry[];
 
   @CreateDateColumn()

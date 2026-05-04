@@ -17,7 +17,7 @@ export default function Hero() {
       <div className="container mx-auto">
         <div className="flex flex-col items-center text-center mb-12">
           <div className="inline-block mb-6 px-9 py-3 bg-slate-850 border border-slate-600 rounded-full">
-            <span className="text-cyan-400 text-sm font-semibold">● AI-POWERED QA</span>
+            <span className="text-slate-200 text-sm font-semibold">● AI-POWERED QA</span>
           </div>
           
           <motion.h1
@@ -37,7 +37,7 @@ export default function Hero() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 mb-16">
-            <Button variant="primary" className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold px-8 py-3 rounded-lg flex items-center justify-center gap-2">
+            <Button variant="primary" className="bg-white hover:bg-slate-200 text-slate-950 font-semibold px-8 py-3 rounded-lg flex items-center justify-center gap-2">
               Start Generating Free <ArrowRight size={20} />
             </Button>
             <Button variant="outline" className="border border-slate-700 hover:bg-slate-900 text-white font-semibold px-8 py-3 rounded-lg flex items-center justify-center gap-2">
@@ -52,9 +52,9 @@ export default function Hero() {
             {/* Browser Chrome */}
             <div className="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center gap-2">
               <div className="flex gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-slate-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-slate-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-slate-500 rounded-full"></div>
               </div>
               <span className="ml-4 text-slate-400 text-xs">📄 input_requirements.pdf</span>
             </div>
@@ -81,11 +81,11 @@ export default function Hero() {
 
               {/* Right Side - Output */}
               <div>
-                <div className="text-cyan-400 text-xs font-semibold mb-4">GENERATED OUTPUT</div>
+                <div className="text-slate-200 text-xs font-semibold mb-4">GENERATED OUTPUT</div>
                 <div className="text-slate-300 text-sm">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-5 h-5 rounded-full border-2 border-cyan-400 flex items-center justify-center">
-                      <span className="text-cyan-400 text-xs">✓</span>
+                    <div className="w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center">
+                      <span className="text-slate-200 text-xs">✓</span>
                     </div>
                     <span className="font-semibold">TC_001: Valid Login</span>
                   </div>
@@ -94,8 +94,8 @@ export default function Hero() {
                   </div>
 
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-5 h-5 rounded-full border-2 border-yellow-500 flex items-center justify-center">
-                      <span className="text-yellow-500 text-xs">⚠</span>
+                    <div className="w-5 h-5 rounded-full border-2 border-slate-500 flex items-center justify-center">
+                      <span className="text-slate-500 text-xs">⚠</span>
                     </div>
                     <span className="font-semibold">TC_002: Invalid Password</span>
                   </div>
@@ -104,8 +104,8 @@ export default function Hero() {
                   </div>
 
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-5 h-5 rounded-full border-2 border-blue-500 flex items-center justify-center">
-                      <span className="text-blue-500 text-xs">📋</span>
+                    <div className="w-5 h-5 rounded-full border-2 border-slate-500 flex items-center justify-center">
+                      <span className="text-slate-500 text-xs">📋</span>
                     </div>
                     <span className="font-semibold">TC_003: SQL Injection Attempt</span>
                   </div>
@@ -113,7 +113,7 @@ export default function Hero() {
                     Verify input fields sanitize special characters and prevent injection.
                   </div>
 
-                  <div className="text-cyan-400 text-xs mt-6">+ View 12 more generated cases</div>
+                  <div className="text-slate-200 text-xs mt-6">+ View 12 more generated cases</div>
                 </div>
                 
                 <div className="text-slate-500 text-xs mt-6 text-right">Processing complete (0.4s)</div>

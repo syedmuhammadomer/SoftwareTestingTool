@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Mail, Lock, CheckCircle, AlertCircle, User, Cpu, Zap, BarChart3, ShieldCheck, TrendingUp } from 'lucide-react'
@@ -18,6 +18,18 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return
+    }
+
+    const invitedEmail = router.query.email
+
+    if (typeof invitedEmail === 'string' && invitedEmail.trim()) {
+      setEmail(invitedEmail.trim())
+    }
+  }, [router.isReady, router.query.email])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,20 +74,20 @@ export default function Register() {
       <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         {/* Left banner (SQA themed) */}
         <div className="hidden md:flex flex-col items-start justify-center p-12 rounded-3xl gap-8" style={{
-          background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
-          border: '2px solid rgba(6, 182, 212, 0.2)',
-          boxShadow: '0 0 40px rgba(6, 182, 212, 0.1)'
+          background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.28) 0%, rgba(24, 24, 27, 0.2) 100%)',
+          border: '2px solid rgba(255, 255, 255, 0.14)',
+          boxShadow: '0 0 40px rgba(255, 255, 255, 0.06)'
         }}>
           <div className="flex items-center gap-4">
             <div className="p-4 rounded-xl" style={{
-              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%)',
-              border: '1px solid rgba(6, 182, 212, 0.3)'
+              background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.32) 0%, rgba(24, 24, 27, 0.22) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.18)'
             }}>
-              <Cpu size={36} className="text-cyan-400" />
+              <Cpu size={36} className="text-slate-200" />
             </div>
             <div>
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">TestGen SQA</h2>
-              <p className="text-cyan-200 text-sm font-medium">Next-gen quality automation platform</p>
+              <h2 className="text-4xl font-bold bg-gradient-to-r from-black to-slate-700 bg-clip-text text-transparent">TestGen SQA</h2>
+              <p className="text-slate-300 text-sm font-medium">Next-gen quality automation platform</p>
             </div>
           </div>
 
@@ -84,10 +96,10 @@ export default function Register() {
             
             <div className="space-y-4">
               <div className="flex items-start gap-4 p-4 rounded-xl" style={{
-                background: 'rgba(6, 182, 212, 0.05)',
-                border: '1px solid rgba(6, 182, 212, 0.2)'
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.12)'
               }}>
-                <Zap size={24} className="text-cyan-400 flex-shrink-0 mt-1" />
+                <Zap size={24} className="text-slate-200 flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="font-semibold text-white">90% Faster Test Generation</h3>
                   <p className="text-sm text-slate-300">AI-powered automation in minutes</p>
@@ -95,10 +107,10 @@ export default function Register() {
               </div>
 
               <div className="flex items-start gap-4 p-4 rounded-xl" style={{
-                background: 'rgba(6, 182, 212, 0.05)',
-                border: '1px solid rgba(6, 182, 212, 0.2)'
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.12)'
               }}>
-                <BarChart3 size={24} className="text-cyan-400 flex-shrink-0 mt-1" />
+                <BarChart3 size={24} className="text-slate-200 flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="font-semibold text-white">Real-time Analytics</h3>
                   <p className="text-sm text-slate-300">Detailed quality metrics & insights</p>
@@ -106,10 +118,10 @@ export default function Register() {
               </div>
 
               <div className="flex items-start gap-4 p-4 rounded-xl" style={{
-                background: 'rgba(6, 182, 212, 0.05)',
-                border: '1px solid rgba(6, 182, 212, 0.2)'
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.12)'
               }}>
-                <ShieldCheck size={24} className="text-cyan-400 flex-shrink-0 mt-1" />
+                <ShieldCheck size={24} className="text-slate-200 flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="font-semibold text-white">Enterprise Security</h3>
                   <p className="text-sm text-slate-300">End-to-end encryption & compliance</p>
@@ -117,10 +129,10 @@ export default function Register() {
               </div>
 
               <div className="flex items-start gap-4 p-4 rounded-xl" style={{
-                background: 'rgba(6, 182, 212, 0.05)',
-                border: '1px solid rgba(6, 182, 212, 0.2)'
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.12)'
               }}>
-                <TrendingUp size={24} className="text-cyan-400 flex-shrink-0 mt-1" />
+                <TrendingUp size={24} className="text-slate-200 flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="font-semibold text-white">Continuous Improvement</h3>
                   <p className="text-sm text-slate-300">ML-driven test optimization</p>
@@ -131,24 +143,24 @@ export default function Register() {
 
           <div className="mt-4 flex gap-2 flex-wrap">
             <div className="px-4 py-2 rounded-full text-sm font-medium" style={{
-              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%)',
-              border: '1px solid rgba(6, 182, 212, 0.3)',
-              color: '#06b6d4'
+              background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.28) 0%, rgba(24, 24, 27, 0.2) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              color: '#ffffff'
             }}>Automation</div>
             <div className="px-4 py-2 rounded-full text-sm font-medium" style={{
-              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%)',
-              border: '1px solid rgba(6, 182, 212, 0.3)',
-              color: '#06b6d4'
+              background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.28) 0%, rgba(24, 24, 27, 0.2) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              color: '#ffffff'
             }}>CI/CD</div>
             <div className="px-4 py-2 rounded-full text-sm font-medium" style={{
-              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%)',
-              border: '1px solid rgba(6, 182, 212, 0.3)',
-              color: '#06b6d4'
+              background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.28) 0%, rgba(24, 24, 27, 0.2) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              color: '#ffffff'
             }}>AI-Powered</div>
             <div className="px-4 py-2 rounded-full text-sm font-medium" style={{
-              background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%)',
-              border: '1px solid rgba(6, 182, 212, 0.3)',
-              color: '#06b6d4'
+              background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.28) 0%, rgba(24, 24, 27, 0.2) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              color: '#ffffff'
             }}>Enterprise</div>
           </div>
         </div>
@@ -157,7 +169,7 @@ export default function Register() {
         <div className="border-2 border-slate-600 rounded-3xl p-10" style={{
           background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%)',
           backdropFilter: 'blur(20px)',
-          boxShadow: '0 0 40px rgba(6, 182, 212, 0.1)'
+          boxShadow: '0 0 40px rgba(255, 255, 255, 0.06)'
         }}>
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-white mb-3">Create an account</h1>
@@ -165,13 +177,13 @@ export default function Register() {
           </div>
 
           {serverError && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg flex items-center gap-2 text-sm text-red-400">
+            <div className="mb-4 p-3 bg-slate-500/10 border border-slate-500/50 rounded-lg flex items-center gap-2 text-sm text-slate-400">
               <AlertCircle size={16} /> {serverError}
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-3 bg-green-500/10 border border-green-500/50 rounded-lg flex items-center gap-2 text-sm text-green-400">
+            <div className="mb-4 p-3 bg-slate-500/10 border border-slate-500/50 rounded-lg flex items-center gap-2 text-sm text-slate-400">
               <CheckCircle size={16} /> {success}
             </div>
           )}
@@ -192,13 +204,13 @@ export default function Register() {
                   disabled={loading}
                   className={`w-full pl-10 pr-4 py-4 rounded-lg border outline-none transition ${
                     touched.firstName && errors.firstName
-                      ? 'border-red-500 bg-red-500/5 text-white placeholder-slate-500'
-                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-cyan-500'
+                      ? 'border-slate-500 bg-slate-500/5 text-white placeholder-slate-500'
+                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-white'
                   } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
               {touched.firstName && errors.firstName && (
-                <div className="mt-2 flex items-center gap-1 text-red-400 text-sm"><AlertCircle size={14} /> {errors.firstName}</div>
+                <div className="mt-2 flex items-center gap-1 text-slate-400 text-sm"><AlertCircle size={14} /> {errors.firstName}</div>
               )}
             </div>
 
@@ -217,13 +229,13 @@ export default function Register() {
                   disabled={loading}
                   className={`w-full pl-10 pr-4 py-4 rounded-lg border outline-none transition ${
                     touched.lastName && errors.lastName
-                      ? 'border-red-500 bg-red-500/5 text-white placeholder-slate-500'
-                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-cyan-500'
+                      ? 'border-slate-500 bg-slate-500/5 text-white placeholder-slate-500'
+                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-white'
                   } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
               {touched.lastName && errors.lastName && (
-                <div className="mt-2 flex items-center gap-1 text-red-400 text-sm"><AlertCircle size={14} /> {errors.lastName}</div>
+                <div className="mt-2 flex items-center gap-1 text-slate-400 text-sm"><AlertCircle size={14} /> {errors.lastName}</div>
               )}
             </div>
 
@@ -242,13 +254,13 @@ export default function Register() {
                   disabled={loading}
                   className={`w-full pl-10 pr-4 py-4 rounded-lg border outline-none transition ${
                     touched.email && errors.email
-                      ? 'border-red-500 bg-red-500/5 text-white placeholder-slate-500'
-                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-cyan-500'
+                      ? 'border-slate-500 bg-slate-500/5 text-white placeholder-slate-500'
+                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-white'
                   } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
               {touched.email && errors.email && (
-                <div className="mt-2 flex items-center gap-1 text-red-400 text-sm"><AlertCircle size={14} /> {errors.email}</div>
+                <div className="mt-2 flex items-center gap-1 text-slate-400 text-sm"><AlertCircle size={14} /> {errors.email}</div>
               )}
             </div>
 
@@ -266,13 +278,13 @@ export default function Register() {
                   disabled={loading}
                   className={`w-full pl-10 pr-4 py-4 rounded-lg border outline-none transition ${
                     touched.password && errors.password
-                      ? 'border-red-500 bg-red-500/5 text-white placeholder-slate-500'
-                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-cyan-500'
+                      ? 'border-slate-500 bg-slate-500/5 text-white placeholder-slate-500'
+                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-white'
                   } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
               {touched.password && errors.password && (
-                <div className="mt-2 flex items-center gap-1 text-red-400 text-sm"><AlertCircle size={14} /> {errors.password}</div>
+                <div className="mt-2 flex items-center gap-1 text-slate-400 text-sm"><AlertCircle size={14} /> {errors.password}</div>
               )}
             </div>
 
@@ -290,13 +302,13 @@ export default function Register() {
                   disabled={loading}
                   className={`w-full pl-10 pr-4 py-4 rounded-lg border outline-none transition ${
                     touched.confirm && errors.confirm
-                      ? 'border-red-500 bg-red-500/5 text-white placeholder-slate-500'
-                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-cyan-500'
+                      ? 'border-slate-500 bg-slate-500/5 text-white placeholder-slate-500'
+                      : 'border-slate-600 bg-slate-900/50 text-white placeholder-slate-500 hover:border-slate-500 focus:border-white'
                   } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
               {touched.confirm && errors.confirm && (
-                <div className="mt-2 flex items-center gap-1 text-red-400 text-sm"><AlertCircle size={14} /> {errors.confirm}</div>
+                <div className="mt-2 flex items-center gap-1 text-slate-400 text-sm"><AlertCircle size={14} /> {errors.confirm}</div>
               )}
             </div>
 
@@ -305,13 +317,13 @@ export default function Register() {
               size="lg"
               isLoading={loading}
               className="w-full mt-2 text-lg font-semibold"
-              style={{ background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #000000 0%, #18181b 100%)' }}
             >
               {loading ? 'Creating account...' : 'Create account'}
             </Button>
 
             <div className="text-center mt-6">
-              <span className="text-slate-300 text-base">Already have an account? <Link href="/login" className="text-cyan-400 font-semibold hover:text-cyan-300">Login</Link></span>
+              <span className="text-slate-300 text-base">Already have an account? <Link href="/login" className="text-slate-200 font-semibold hover:text-slate-300">Login</Link></span>
             </div>
           </form>
         </div>

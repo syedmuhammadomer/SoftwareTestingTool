@@ -4,11 +4,12 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { ClipboardList, Link, CheckCircle, Circle } from 'lucide-react'
 import Layout from '@/components/Layout'
 import { useProjectContext } from '@/context/ProjectContext'
+import { Skeleton, TableSkeleton } from '@/components/Skeleton'
 
 export default function RtmPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const { selectedProject } = useProjectContext()
+  const { selectedProject, loading: projectsLoading } = useProjectContext()
 
   useEffect(() => {
     const token = localStorage.getItem('authToken')
@@ -44,19 +45,19 @@ export default function RtmPage() {
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Traceability</p>
             <h1 className="text-3xl font-semibold text-white">Requirement Traceability Matrix</h1>
-            <p className="text-sm text-slate-400 max-w-2xl">
+            <p className="app-subtext max-w-2xl">
               Monitor how each requirement maps to user stories and test coverage. This view highlights coverage gaps before they hit QA.
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900 px-4 py-2 text-xs uppercase tracking-widest text-slate-300">
-              <Link className="w-4 h-4 text-cyan-400" /> {entries.length} Entries
+              <Link className="w-4 h-4 text-slate-200" /> {entries.length} Entries
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900 px-4 py-2 text-xs uppercase tracking-widest text-slate-300">
-              <ClipboardList className="w-4 h-4 text-emerald-400" /> {summary.uniqueProjects} Projects
+              <ClipboardList className="w-4 h-4 text-slate-400" /> {summary.uniqueProjects} Projects
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900 px-4 py-2 text-xs uppercase tracking-widest text-slate-300">
-              <CheckCircle className="w-4 h-4 text-lime-400" /> {summary.completed} Completed
+              <CheckCircle className="w-4 h-4 text-slate-300" /> {summary.completed} Completed
             </span>
           </div>
         </header>
@@ -64,18 +65,30 @@ export default function RtmPage() {
         <section className="grid gap-6 md:grid-cols-3">
           <div className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-5 shadow-lg shadow-slate-900/40">
             <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Coverage</p>
-            <p className="text-2xl font-semibold text-white">{summary.totalEntries}</p>
-            <p className="text-sm text-slate-400">Requirements being tracked</p>
+            {projectsLoading ? (
+              <Skeleton className="mt-2 h-8 w-16 rounded-md" />
+            ) : (
+              <p className="text-2xl font-semibold text-white">{summary.totalEntries}</p>
+            )}
+            <p className="app-subtext">Requirements being tracked</p>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-lg shadow-slate-900/40">
             <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Ready For QA</p>
-            <p className="text-2xl font-semibold text-white">{summary.completed}</p>
-            <p className="text-sm text-slate-400">Projects completed in queue</p>
+            {projectsLoading ? (
+              <Skeleton className="mt-2 h-8 w-16 rounded-md" />
+            ) : (
+              <p className="text-2xl font-semibold text-white">{summary.completed}</p>
+            )}
+            <p className="app-subtext">Projects completed in queue</p>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-lg shadow-slate-900/40">
             <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Automation Focus</p>
-            <p className="text-2xl font-semibold text-white">{Math.max(0, entries.length - summary.completed)}</p>
-            <p className="text-sm text-slate-400">Requirements needing test coverage</p>
+            {projectsLoading ? (
+              <Skeleton className="mt-2 h-8 w-16 rounded-md" />
+            ) : (
+              <p className="text-2xl font-semibold text-white">{Math.max(0, entries.length - summary.completed)}</p>
+            )}
+            <p className="app-subtext">Requirements needing test coverage</p>
           </div>
         </section>
 
@@ -88,30 +101,32 @@ export default function RtmPage() {
           </div>
 
           {loading && (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-8 text-center text-slate-400">
-              Loading RTM data…
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-8">
+              <Skeleton className="h-6 w-40 rounded-md" />
             </div>
           )}
 
           {error && (
-            <div className="rounded-2xl border border-rose-800 bg-rose-900/20 p-6 text-sm text-rose-200">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/20 p-6 text-sm text-slate-200">
               {error}
             </div>
           )}
 
-          {!loading && !error && !selectedProject && (
+          {!loading && !error && projectsLoading && <TableSkeleton rows={6} />}
+
+          {!loading && !error && !projectsLoading && !selectedProject && (
             <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-8 text-center text-slate-400">
               Select a project from the dropdown next to the logo to view its RTM.
             </div>
           )}
 
-          {!loading && !error && selectedProject && entries.length === 0 && (
+          {!loading && !error && !projectsLoading && selectedProject && entries.length === 0 && (
             <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-8 text-center text-slate-400">
               No RTM entries yet. Queue a project to generate a matrix automatically.
             </div>
           )}
 
-          {!loading && !error && entries.length > 0 && (
+          {!loading && !error && !projectsLoading && entries.length > 0 && (
             <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl shadow-slate-950">
               <div className="grid grid-cols-12 gap-0 border-b border-slate-800 bg-slate-950/80 px-6 py-3 text-xs uppercase tracking-[0.4em] text-slate-500">
                 <span className="col-span-3">Requirement</span>
@@ -152,11 +167,11 @@ export default function RtmPage() {
                     </div>
                     <div className="col-span-1 flex items-center justify-end gap-2 text-xs font-semibold uppercase tracking-[0.3em]">
                       {entry.projectStatus === 'completed' ? (
-                        <span className="flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-emerald-300">
+                        <span className="flex items-center gap-1 rounded-full border border-slate-500/40 bg-slate-500/10 px-3 py-1 text-slate-300">
                           <CheckCircle className="w-3 h-3" /> Live
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-cyan-300">
+                        <span className="flex items-center gap-1 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-slate-300">
                           <Circle className="w-2 h-2" /> {entry.projectStatus}
                         </span>
                       )}

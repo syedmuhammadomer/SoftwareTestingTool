@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/router'                                          
 import { CheckCircle, AlertCircle, Mail } from 'lucide-react'
 import { authService } from '@/services/authService'
 import Button from '@/components/Button'
@@ -99,22 +99,22 @@ export default function VerifyOtp() {
         }}>
           {/* Header */}
           <div className="mb-8 text-center">
-            <div className="w-16 h-16 bg-cyan-500/10 border border-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Mail className="w-8 h-8 text-cyan-400" />
+            <div className="w-16 h-16 bg-white/10 border border-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-8 h-8 text-slate-200" />
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">Verify your email</h1>
-            <p className="text-slate-400 text-sm mb-1">We sent a 6-digit code to</p>
+            <p className="app-subtext mb-1">We sent a 6-digit code to</p>
             <p className="text-slate-200 font-medium">{email || 'your email address'}</p>
           </div>
 
           {/* Error/Info Messages */}
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg flex items-center gap-2 text-sm text-red-400">
+            <div className="mb-6 p-4 bg-slate-500/10 border border-slate-500/50 rounded-lg flex items-center gap-2 text-sm text-slate-400">
               <AlertCircle size={16} /> {error}
             </div>
           )}
           {info && (
-            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg flex items-center gap-2 text-sm text-green-400">
+            <div className="mb-6 p-4 bg-slate-500/10 border border-slate-500/50 rounded-lg flex items-center gap-2 text-sm text-slate-400">
               <CheckCircle size={16} /> {info}
             </div>
           )}
@@ -135,9 +135,9 @@ export default function VerifyOtp() {
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     maxLength={1}
                     disabled={loading}
-                    className="w-12 h-12 text-center text-xl font-bold border-2 rounded-lg bg-slate-900/50 text-white outline-none transition-all duration-200 focus:border-cyan-400 focus:bg-slate-800 hover:border-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-12 h-12 text-center text-xl font-bold border-2 rounded-lg bg-slate-900/50 text-white outline-none transition-all duration-200 focus:border-slate-200 focus:bg-slate-800 hover:border-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
-                      borderColor: digit ? '#06b6d4' : '#475569',
+                      borderColor: digit ? '#ffffff' : '#475569',
                     }}
                   />
                 ))}
@@ -149,20 +149,20 @@ export default function VerifyOtp() {
               type="submit"
               isLoading={loading}
               className="w-full"
-              style={{ background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #000000 0%, #18181b 100%)' }}
             >
               {loading ? 'Verifying...' : 'Verify & continue'}
             </Button>
 
             {/* Footer */}
-            <div className="flex justify-between items-center text-sm text-slate-400">
+            <div className="flex justify-between items-center app-subtext">
               <Button
                 type="button"
                 onClick={handleResend}
                 disabled={loading}
                 variant="outline"
                 size="sm"
-                className="text-cyan-300 hover:text-cyan-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-slate-300 hover:text-slate-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Resend code
               </Button>

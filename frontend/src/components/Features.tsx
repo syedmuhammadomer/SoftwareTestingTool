@@ -42,7 +42,7 @@ export default function Features() {
             const Icon = feature.icon
             return (
               <div key={idx} className="bg-slate-900 border border-slate-800 rounded-lg p-8 hover:border-slate-700 transition">
-                <div className="text-cyan-400 mb-4">
+                <div className="text-slate-200 mb-4">
                   <Icon size={32} strokeWidth={1.5} />
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-white">{feature.title}</h3>

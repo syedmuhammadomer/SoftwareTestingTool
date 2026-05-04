@@ -139,6 +139,9 @@ class AuthService {
       if (response.data?.token) {
         storage.setToken(response.data.token)
       }
+      if (response.data?.user) {
+        storage.setUser(response.data.user)
+      }
       return response.data
     } catch {
       // fallback to client-side mock

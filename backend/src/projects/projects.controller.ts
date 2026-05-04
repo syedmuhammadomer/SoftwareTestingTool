@@ -1,10 +1,12 @@
-import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import path from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { CreateUserStoryDto } from './dto/create-user-story.dto';
+import { UpdateUserStoryDto } from './dto/update-user-story.dto';
 import { ProjectsService } from './projects.service';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'srs');
@@ -13,7 +15,6 @@ if (!existsSync(UPLOAD_DIR)) {
 }
 const allowedMimeTypes = [
   'application/pdf',
-  'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
 
@@ -22,7 +23,7 @@ const fileFilter = (_req, file, callback) => {
     callback(null, true);
     return;
   }
-  callback(new BadRequestException('Only PDF, DOC, and DOCX files are supported'), false);
+  callback(new BadRequestException('Only PDF and DOCX files are supported. Please convert legacy .doc files to .docx or PDF.'), false);
 };
 
 const storage = diskStorage({
@@ -94,6 +95,50 @@ export class ProjectsController {
       throw new NotFoundException('Project not found');
     }
     return project;
+  }
+
+  @Get(':projectId/user-stories')
+  @ApiOperation({ summary: 'List user stories for a project' })
+  async listUserStories(@Param('projectId', ParseIntPipe) projectId: number) {
+    return this.projectsService.listUserStories(projectId);
+  }
+
+  @Get(':projectId/user-stories/:storyId')
+  @ApiOperation({ summary: 'Get a single user story by project' })
+  async getUserStory(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('storyId', ParseIntPipe) storyId: number,
+  ) {
+    return this.projectsService.getUserStory(projectId, storyId);
+  }
+
+  @Post(':projectId/user-stories')
+  @ApiOperation({ summary: 'Create a user story for a project' })
+  async createUserStory(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Body() body: CreateUserStoryDto,
+  ) {
+    return this.projectsService.createUserStory(projectId, body);
+  }
+
+  @Patch(':projectId/user-stories/:storyId')
+  @ApiOperation({ summary: 'Update a user story for a project' })
+  async updateUserStory(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('storyId', ParseIntPipe) storyId: number,
+    @Body() body: UpdateUserStoryDto,
+  ) {
+    return this.projectsService.updateUserStory(projectId, storyId, body);
+  }
+
+  @Delete(':projectId/user-stories/:storyId')
+  @ApiOperation({ summary: 'Delete a user story from a project' })
+  async deleteUserStory(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('storyId', ParseIntPipe) storyId: number,
+  ) {
+    await this.projectsService.deleteUserStory(projectId, storyId);
+    return { message: 'User story deleted successfully' };
   }
 
   @Delete(':id')

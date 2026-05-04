@@ -53,7 +53,7 @@ export default function TestCaseEditPage() {
           <div>
             <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Test Case Form</p>
             <h1 className="text-3xl font-semibold text-white">Edit Test Case {testCase.id}</h1>
-            <p className="text-sm text-slate-400">Update metadata, execution status, and expected behavior before marking complete.</p>
+            <p className="app-subtext">Update metadata, execution status, and expected behavior before marking complete.</p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" size="md" onClick={() => router.back()}>
@@ -70,7 +70,7 @@ export default function TestCaseEditPage() {
               <input
                 value={form.title}
                 onChange={(e) => handleChange('title', e.target.value)}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
               />
             </label>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -79,7 +79,7 @@ export default function TestCaseEditPage() {
                 <input
                   value={form.requirement}
                   onChange={(e) => handleChange('requirement', e.target.value)}
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
                 />
               </label>
               <label className="block space-y-2 text-sm text-slate-300">
@@ -87,7 +87,7 @@ export default function TestCaseEditPage() {
                 <input
                   value={form.scenario}
                   onChange={(e) => handleChange('scenario', e.target.value)}
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
                 />
               </label>
             </div>
@@ -97,7 +97,7 @@ export default function TestCaseEditPage() {
                 <select
                   value={form.priority}
                   onChange={(e) => handleChange('priority', e.target.value)}
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
                 >
                   <option>Critical</option>
                   <option>High</option>
@@ -110,7 +110,7 @@ export default function TestCaseEditPage() {
                 <select
                   value={form.status}
                   onChange={(e) => handleChange('status', e.target.value)}
-                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
                 >
                   <option>Passed</option>
                   <option>Failed</option>
@@ -128,7 +128,7 @@ export default function TestCaseEditPage() {
                 value={form.preconditions}
                 onChange={(e) => handleChange('preconditions', e.target.value)}
                 rows={4}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
               />
             </label>
             <label className="block space-y-2 text-sm text-slate-300">
@@ -137,7 +137,7 @@ export default function TestCaseEditPage() {
                 value={form.expectedResult}
                 onChange={(e) => handleChange('expectedResult', e.target.value)}
                 rows={3}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
               />
             </label>
           </div>
@@ -149,7 +149,7 @@ export default function TestCaseEditPage() {
             value={form.steps}
             onChange={(e) => handleChange('steps', e.target.value)}
             rows={6}
-            className="mt-4 w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+            className="mt-4 w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
           />
         </section>
       </div>

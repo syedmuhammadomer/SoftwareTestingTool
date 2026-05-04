@@ -98,8 +98,8 @@ export default function Pricing() {
             transition={{ duration: 0.6 }}
             className="mb-8"
           >
-            <div className="inline-block mb-6 px-6 py-2 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-full">
-              <span className="text-cyan-400 text-sm font-semibold flex items-center gap-2">
+            <div className="inline-block mb-6 px-6 py-2 bg-gradient-to-r from-black/30 to-slate-900/30 border border-slate-700 rounded-full">
+              <span className="text-slate-200 text-sm font-semibold flex items-center gap-2">
                 <Star size={16} />
                 Choose Your Plan
               </span>
@@ -121,19 +121,19 @@ export default function Pricing() {
       {/* Project dropdown for admin view */}
       <section className="px-6 lg:px-12 -mt-16">
         <div className="container mx-auto">
-          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-2xl shadow-cyan-500/10">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-2xl shadow-white/10">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-400">Admin project switcher</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-200">Admin project switcher</p>
                 <h3 className="text-2xl font-semibold text-white mt-1">Inspect every project before choosing a plan</h3>
-                <p className="text-slate-400 text-sm">Pick a project to see its coverage, requirements, and team stats right here.</p>
+                <p className="app-subtext">Pick a project to see its coverage, requirements, and team stats right here.</p>
               </div>
               <div className="min-w-[240px]">
                 <label className="block text-xs font-semibold text-slate-400 mb-1">Active project</label>
                 <select
                   value={selectedProjectId}
                   onChange={(event) => setSelectedProjectId(event.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-2 px-4 focus:outline-none focus-visible:border-cyan-400"
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-2xl py-2 px-4 focus:outline-none focus-visible:border-slate-200"
                 >
                   {projects.map((project) => (
                     <option key={project.id} value={project.id}>
@@ -155,7 +155,7 @@ export default function Pricing() {
                   <div className="text-xs uppercase tracking-[0.25em] text-slate-500 mb-2">Test coverage</div>
                   <div className="w-full bg-slate-800/50 h-2 rounded-full">
                     <div
-                      className="h-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"
+                      className="h-2 rounded-full bg-gradient-to-r from-black to-slate-800"
                       style={{ width: `${selectedProject?.coverage ?? 0}%` }}
                     />
                   </div>
@@ -211,7 +211,7 @@ export default function Pricing() {
                 {/* Popular Badge */}
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                    <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                    <div className="bg-gradient-to-r from-black to-slate-800 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                       Most Popular
                     </div>
                   </div>
@@ -220,20 +220,20 @@ export default function Pricing() {
                 {/* Card */}
                 <div className={`relative h-full p-8 rounded-2xl border backdrop-blur-sm transition-all duration-300 ${
                   plan.popular
-                    ? 'bg-gradient-to-br from-slate-900/80 to-slate-800/80 border-cyan-500/50 shadow-2xl shadow-cyan-500/20'
+                    ? 'bg-gradient-to-br from-black/80 to-slate-900/80 border-white/50 shadow-2xl shadow-black/30'
                     : 'bg-slate-900/50 border-slate-700 hover:border-slate-600 hover:bg-slate-800/50'
                 }`}>
 
                   {/* Glow Effect for Popular */}
                   {plan.popular && (
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 opacity-50"></div>
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-black/20 to-slate-900/20 opacity-50"></div>
                   )}
 
                   <div className="relative z-10">
                     {/* Header */}
                     <div className="text-center mb-8">
                       <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                      <p className="text-slate-400 text-sm mb-6">{plan.description}</p>
+                      <p className="app-subtext mb-6">{plan.description}</p>
 
                       <div className="mb-6">
                         <span className="text-4xl font-bold text-white">{plan.price}</span>
@@ -245,7 +245,7 @@ export default function Pricing() {
                     <div className="space-y-4 mb-8">
                       {plan.features.map((feature, featureIndex) => (
                         <div key={featureIndex} className="flex items-start gap-3">
-                          <Check size={18} className="text-green-400 mt-0.5 flex-shrink-0" />
+                          <Check size={18} className="text-slate-400 mt-0.5 flex-shrink-0" />
                           <span className="text-slate-300 text-sm">{feature}</span>
                         </div>
                       ))}
@@ -253,7 +253,7 @@ export default function Pricing() {
                       {plan.limitations.map((limitation, limitIndex) => (
                         <div key={limitIndex} className="flex items-start gap-3 opacity-60">
                           <div className="w-4 h-4 rounded-full bg-slate-600 mt-0.5 flex-shrink-0"></div>
-                          <span className="text-slate-400 text-sm">{limitation}</span>
+                          <span className="app-subtext">{limitation}</span>
                         </div>
                       ))}
                     </div>
@@ -263,7 +263,7 @@ export default function Pricing() {
                       variant={plan.buttonVariant}
                       className={`w-full ${
                         plan.popular
-                          ? 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold'
+                          ? 'bg-gradient-to-r from-black to-slate-800 hover:from-slate-950 hover:to-black text-white font-semibold'
                           : ''
                       }`}
                       size="lg"
@@ -350,7 +350,7 @@ export default function Pricing() {
               <Button
                 variant="primary"
                 size="lg"
-                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold px-8 py-4"
+                className="bg-gradient-to-r from-black to-slate-800 hover:from-slate-950 hover:to-black text-white font-semibold px-8 py-4"
               >
                 Start Free Trial
               </Button>

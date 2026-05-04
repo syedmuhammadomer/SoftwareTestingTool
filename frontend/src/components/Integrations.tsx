@@ -39,7 +39,7 @@ export default function Integrations() {
             const Icon = integration.icon
             return (
               <Button key={idx} variant="outline" className="px-6 py-3 bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 transition flex items-center gap-2 text-white">
-                <Icon size={20} className="text-cyan-400" />
+                <Icon size={20} className="text-slate-200" />
                 <span className="font-semibold">{integration.name}</span>
               </Button>
             )
@@ -53,7 +53,7 @@ export default function Integrations() {
             <div className="bg-slate-900 border border-slate-800 rounded-lg p-8">
               <div className="text-6xl font-bold text-slate-700 mb-4">01</div>
               <div className="flex justify-center mb-4">
-                <Zap className="text-cyan-400" size={40} strokeWidth={1.5} />
+                <Zap className="text-slate-200" size={40} strokeWidth={1.5} />
               </div>
               <h4 className="text-xl font-bold mb-2">Import Requirements</h4>
               <p className="text-slate-400">Paste text, upload PDFs, or connect your Jira/Swagger documentation directly.</p>
@@ -62,7 +62,7 @@ export default function Integrations() {
             <div className="bg-slate-900 border border-slate-800 rounded-lg p-8">
               <div className="text-6xl font-bold text-slate-700 mb-4">02</div>
               <div className="flex justify-center mb-4">
-                <Zap className="text-purple-400" size={40} strokeWidth={1.5} />
+                <Zap className="text-slate-400" size={40} strokeWidth={1.5} />
               </div>
               <h4 className="text-xl font-bold mb-2">AI Analysis</h4>
               <p className="text-slate-400">Our engine parses logic, identifies edge cases, and maps user flows instantly.</p>
@@ -71,7 +71,7 @@ export default function Integrations() {
             <div className="bg-slate-900 border border-slate-800 rounded-lg p-8">
               <div className="text-6xl font-bold text-slate-700 mb-4">03</div>
               <div className="flex justify-center mb-4">
-                <Zap className="text-emerald-400" size={40} strokeWidth={1.5} />
+                <Zap className="text-slate-400" size={40} strokeWidth={1.5} />
               </div>
               <h4 className="text-xl font-bold mb-2">Export & Sync</h4>
               <p className="text-slate-400">Download as CSV/Excel or sync created test cases back to your management tool.</p>

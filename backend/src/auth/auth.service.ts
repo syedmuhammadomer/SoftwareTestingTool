@@ -6,6 +6,7 @@ import * as jwt from 'jsonwebtoken';
 import { User } from './user.entity';
 import { PendingRegistration } from './pending-registration.entity';
 import { EmailService } from './email.service';
+import { TeamMember } from '../team/entities/team-member.entity';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,8 @@ export class AuthService {
     private userRepository: Repository<User>,
     @InjectRepository(PendingRegistration)
     private pendingRepository: Repository<PendingRegistration>,
+    @InjectRepository(TeamMember)
+    private readonly teamMemberRepository: Repository<TeamMember>,
     private emailService: EmailService,
   ) {
     this.createDemoUser();
@@ -44,6 +47,73 @@ export class AuthService {
       });
       await this.userRepository.save(demoUser);
     }
+  }
+
+  private getRolePermissions(role?: string) {
+    switch (role) {
+      case 'QA':
+        return [
+          'dashboard:view',
+          'projects:view_assigned',
+          'user_stories:create',
+          'test_cases:create',
+          'documents:view',
+          'backlogs:manage',
+          'testing_status:update',
+          'bugs:create',
+          'stories_test_cases:link',
+        ];
+      case 'Product Owner':
+        return [
+          'dashboard:view',
+          'projects:create',
+          'projects:view_assigned',
+          'user_stories:create',
+          'test_cases:create',
+          'documents:view',
+          'backlogs:manage',
+          'rtm:view',
+          'team:manage',
+          'sprints:plan',
+          'stories:assign',
+          'backlog:approve_priorities',
+        ];
+      case 'Developer':
+        return [
+          'dashboard:view',
+          'projects:view_assigned',
+          'documents:view',
+          'backlogs:view',
+          'tickets:update_status',
+          'tasks:move_backlog',
+          'tasks:move_in_progress',
+          'tasks:move_testing',
+          'tasks:move_done',
+          'comments:development',
+          'implementation:update_progress',
+        ];
+      default:
+        return ['*'];
+    }
+  }
+
+  private async buildUserProfile(user: User) {
+    const membership = await this.teamMemberRepository.findOne({ where: { email: user.email.toLowerCase() } });
+    const role = membership?.role || 'Admin';
+    const assignedProject = membership?.project || null;
+    const permissions = this.getRolePermissions(role);
+
+    return {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role,
+      team: membership?.team || 'Core Admin',
+      assignedProject,
+      accessPreset: membership?.accessPreset || 'full',
+      permissions,
+    };
   }
 
   async validateUser(email: string, password: string): Promise<User | null> {
@@ -104,7 +174,7 @@ export class AuthService {
   /**
    * Verify OTP and complete registration
    */
-  async verifyOtp(email: string, otp: string): Promise<{ token: string; message: string }> {
+  async verifyOtp(email: string, otp: string): Promise<{ token: string; message: string; user: any }> {
     const pending = await this.pendingRepository.findOne({ where: { email: email.toLowerCase() } });
 
     if (!pending) {
@@ -151,16 +221,11 @@ export class AuthService {
       console.error(`[EMAIL] Failed to send welcome email to ${newUser.email}:`, error);
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: newUser.id, email: newUser.email },
-      this.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
+    const login = await this.loginResponse(newUser);
     return {
-      token,
+      token: login.token,
       message: 'Registration successful',
+      user: login.user,
     };
   }
 
@@ -201,8 +266,17 @@ export class AuthService {
    * Generate login response with JWT token
    */
   async loginResponse(user: User) {
+    const profile = await this.buildUserProfile(user);
     const token = jwt.sign(
-      { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName },
+      {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: profile.role,
+        permissions: profile.permissions,
+        assignedProject: profile.assignedProject,
+      },
       this.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -210,12 +284,7 @@ export class AuthService {
     return {
       message: 'Login successful',
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
+      user: profile,
     };
   }
 }

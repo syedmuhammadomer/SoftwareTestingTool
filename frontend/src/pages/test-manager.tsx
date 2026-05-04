@@ -6,6 +6,9 @@ import Layout from '@/components/Layout'
 import Button from '@/components/Button'
 import { Filter, Settings, ClipboardList } from 'lucide-react'
 import { useProjectContext } from '@/context/ProjectContext'
+import { User } from '@/types'
+import { hasPermission } from '@/utils/access'
+import PageLoading from '@/components/PageLoading'
 
 type ModalMode = 'view' | 'edit' | 'create'
 
@@ -23,16 +26,16 @@ type TestCase = {
 }
 
 const statusColors: Record<string, string> = {
-  Passed: 'bg-emerald-500/10 text-emerald-300',
-  Failed: 'bg-rose-500/10 text-rose-300',
-  'In Progress': 'bg-cyan-500/10 text-cyan-300',
+  Passed: 'bg-slate-500/10 text-slate-300',
+  Failed: 'bg-slate-500/10 text-slate-300',
+  'In Progress': 'bg-white/10 text-slate-300',
   'Not Started': 'bg-slate-800 text-slate-300',
 }
 
 const priorityColors: Record<string, string> = {
-  Critical: 'bg-rose-500/10 text-rose-300',
-  High: 'bg-orange-400/10 text-orange-300',
-  Medium: 'bg-amber-500/10 text-amber-300',
+  Critical: 'bg-slate-500/10 text-slate-300',
+  High: 'bg-slate-400/10 text-slate-300',
+  Medium: 'bg-slate-500/10 text-slate-300',
   Low: 'bg-slate-800 text-slate-300',
 }
 
@@ -44,10 +47,11 @@ const renderBadge = (value: string, map?: Record<string, string>) => (
 
 export default function TestManagerPage() {
   const router = useRouter()
-  const { selectedProject } = useProjectContext()
+  const { selectedProject, loading: projectsLoading } = useProjectContext()
   const [filter, setFilter] = useState<string>('All Status')
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
     const token = localStorage.getItem('authToken')
@@ -55,8 +59,12 @@ export default function TestManagerPage() {
       router.push('/login')
       return
     }
+    const storedUser = localStorage.getItem('userData')
+    setUser(storedUser ? (JSON.parse(storedUser) as User) : null)
     setLoading(false)
   }, [router])
+
+  const canCreateTestCases = hasPermission(user, 'test_cases:create')
 
   const testCases = useMemo<TestCase[]>(() => {
     if (!selectedProject) return []
@@ -144,12 +152,8 @@ export default function TestManagerPage() {
     setModalTestCase(null)
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-cyan-400 text-lg">Loading...</div>
-      </div>
-    )
+  if (loading || projectsLoading) {
+    return <PageLoading kind="board" />
   }
 
   const renderModalBody = () => {
@@ -217,7 +221,7 @@ export default function TestManagerPage() {
               <input
                 value={editForm.title}
                 onChange={(e) => handleEditChange('title', e.target.value)}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
               />
             </label>
             <label className="block space-y-2 text-sm text-slate-300">
@@ -225,7 +229,7 @@ export default function TestManagerPage() {
               <input
                 value={editForm.scenario}
                 onChange={(e) => handleEditChange('scenario', e.target.value)}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
               />
             </label>
           </div>
@@ -235,7 +239,7 @@ export default function TestManagerPage() {
               <select
                 value={editForm.priority}
                 onChange={(e) => handleEditChange('priority', e.target.value)}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
               >
                 <option>Critical</option>
                 <option>High</option>
@@ -248,7 +252,7 @@ export default function TestManagerPage() {
               <select
                 value={editForm.status}
                 onChange={(e) => handleEditChange('status', e.target.value)}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
               >
                 <option>Passed</option>
                 <option>Failed</option>
@@ -267,7 +271,7 @@ export default function TestManagerPage() {
               value={editForm.preconditions}
               onChange={(e) => handleEditChange('preconditions', e.target.value)}
               rows={3}
-              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
             />
           </label>
           <label className="block space-y-2 text-sm text-slate-300">
@@ -276,7 +280,7 @@ export default function TestManagerPage() {
               value={editForm.expectedResult}
               onChange={(e) => handleEditChange('expectedResult', e.target.value)}
               rows={3}
-              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
             />
           </label>
           <label className="block space-y-2 text-sm text-slate-300">
@@ -285,7 +289,7 @@ export default function TestManagerPage() {
               value={editForm.steps}
               onChange={(e) => handleEditChange('steps', e.target.value)}
               rows={4}
-              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
             />
           </label>
           <div className="flex justify-end gap-3">
@@ -305,7 +309,7 @@ export default function TestManagerPage() {
               <input
                 value={createForm.title}
                 onChange={(e) => handleCreateChange('title', e.target.value)}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
               />
             </label>
             <label className="block space-y-2 text-sm text-slate-300">
@@ -313,7 +317,7 @@ export default function TestManagerPage() {
               <input
                 value={createForm.requirement}
                 onChange={(e) => handleCreateChange('requirement', e.target.value)}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
               />
             </label>
           </div>
@@ -323,7 +327,7 @@ export default function TestManagerPage() {
               <input
                 value={createForm.scenario}
                 onChange={(e) => handleCreateChange('scenario', e.target.value)}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
               />
             </label>
             <label className="block space-y-2 text-sm text-slate-300">
@@ -331,7 +335,7 @@ export default function TestManagerPage() {
               <select
                 value={createForm.priority}
                 onChange={(e) => handleCreateChange('priority', e.target.value)}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+                className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
               >
                 <option>Critical</option>
                 <option>High</option>
@@ -345,7 +349,7 @@ export default function TestManagerPage() {
             <select
               value={createForm.status}
               onChange={(e) => handleCreateChange('status', e.target.value)}
-              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
             >
               <option>Passed</option>
               <option>Failed</option>
@@ -363,7 +367,7 @@ export default function TestManagerPage() {
               value={createForm.preconditions}
               onChange={(e) => handleCreateChange('preconditions', e.target.value)}
               rows={3}
-              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
             />
           </label>
           <label className="block space-y-2 text-sm text-slate-300">
@@ -372,7 +376,7 @@ export default function TestManagerPage() {
               value={createForm.expectedResult}
               onChange={(e) => handleCreateChange('expectedResult', e.target.value)}
               rows={3}
-              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
             />
           </label>
           <label className="block space-y-2 text-sm text-slate-300">
@@ -381,7 +385,7 @@ export default function TestManagerPage() {
               value={createForm.steps}
               onChange={(e) => handleCreateChange('steps', e.target.value)}
               rows={4}
-              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/30"
+              className="w-full rounded-2xl border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:ring-2 focus:ring-white/30"
             />
           </label>
           <div className="flex justify-end gap-3">
@@ -402,7 +406,7 @@ export default function TestManagerPage() {
           <div>
             <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Quality Ops</p>
             <h1 className="text-3xl font-semibold text-white">Test Case Manager</h1>
-            <p className="text-sm text-slate-400 max-w-2xl">
+            <p className="app-subtext max-w-2xl">
               Organize, filter, and batch manage all generated test cases with clarity and productivity insights.
             </p>
           </div>
@@ -411,10 +415,12 @@ export default function TestManagerPage() {
               <Filter className="mr-2 h-4 w-4" />
               Filters
             </Button>
-            <Button size="md" onClick={handleOpenCreate}>
-              <ClipboardList className="mr-2 h-4 w-4" />
-              New Test Case
-            </Button>
+            {canCreateTestCases ? (
+              <Button size="md" onClick={handleOpenCreate}>
+                <ClipboardList className="mr-2 h-4 w-4" />
+                New Test Case
+              </Button>
+            ) : null}
           </div>
         </header>
 
@@ -440,7 +446,7 @@ export default function TestManagerPage() {
                 placeholder="Search test cases, requirements…"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="rounded-full border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                className="rounded-full border border-slate-800 bg-slate-950/50 px-4 py-2 text-sm text-slate-200 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/20"
               />
             </div>
             <div className="flex flex-wrap items-center gap-3 text-sm text-slate-200">
@@ -464,7 +470,7 @@ export default function TestManagerPage() {
 
           <div className="mt-6 overflow-x-auto">
             {!selectedProject && (
-              <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-6 text-sm text-slate-400">
+              <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-6 app-subtext">
                 Select a project from the dropdown next to the logo to view its test cases.
               </div>
             )}
@@ -519,8 +525,9 @@ export default function TestManagerPage() {
           </div>
         </div>
         {modalMode && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="w-full max-w-4xl rounded-2xl border border-slate-800 bg-slate-950/90 p-6 shadow-2xl min-h-[520px] max-h-[86vh]">
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4">
+            <div className="flex min-h-full items-start justify-center py-6">
+            <div className="w-full max-w-4xl rounded-2xl border border-slate-800 bg-slate-950/90 p-6 shadow-2xl min-h-[520px]">
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Test Case</p>
                 <button
@@ -531,9 +538,10 @@ export default function TestManagerPage() {
                   ×
                 </button>
               </div>
-              <div className="max-h-[76vh] overflow-y-auto pr-2">
+              <div>
                 {renderModalBody()}
               </div>
+            </div>
             </div>
           </div>
         )}

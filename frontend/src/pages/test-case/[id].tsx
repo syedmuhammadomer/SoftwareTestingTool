@@ -40,7 +40,7 @@ export default function TestCaseDetailPage() {
           <div>
             <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Test Case Detail</p>
             <h1 className="text-3xl font-semibold text-white">{testCase.title}</h1>
-            <p className="text-sm text-slate-400">Review requirements, steps, and expected results before execution.</p>
+            <p className="app-subtext">Review requirements, steps, and expected results before execution.</p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" size="md">Export</Button>
@@ -68,7 +68,7 @@ export default function TestCaseDetailPage() {
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.4em] text-slate-500">Status</p>
-              <p className="font-semibold text-cyan-300">{testCase.status}</p>
+              <p className="font-semibold text-slate-300">{testCase.status}</p>
             </div>
           </div>
         </section>

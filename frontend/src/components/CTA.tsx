@@ -12,7 +12,7 @@ export default function CTA() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="primary" className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-semibold px-8 py-3 rounded-lg">
+            <Button variant="primary" className="bg-white hover:bg-slate-200 text-slate-950 font-semibold px-8 py-3 rounded-lg">
               Get Started for Free
             </Button>
             <Button variant="outline" className="border border-slate-600 hover:bg-slate-800 text-white font-semibold px-8 py-3 rounded-lg">

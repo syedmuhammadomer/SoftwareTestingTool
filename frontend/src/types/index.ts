@@ -2,7 +2,14 @@
 export interface User {
   id: string
   email: string
+  firstName?: string
+  lastName?: string
   name?: string
+  role?: string
+  team?: string
+  assignedProject?: string | null
+  accessPreset?: string
+  permissions?: string[]
   createdAt?: string
 }
 
