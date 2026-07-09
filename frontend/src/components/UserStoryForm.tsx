@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react'
 import Button from './Button'
-import { UserStoryPayload } from '@/services/userStoryService'
+import { UserStoryInput } from '@/services/userStoryService'
 
 type Priority = 'High' | 'Medium' | 'Low'
 
@@ -60,7 +60,7 @@ type UserStoryFormProps = {
   titleText?: string
   subtitleText?: string
   submitLabel?: string
-  onSubmitStory?: (payload: UserStoryPayload) => Promise<void>
+  onSubmitStory?: (payload: UserStoryInput) => Promise<void>
 }
 
 const createEmptyDraft = (): DraftState => ({
@@ -164,7 +164,7 @@ export default function UserStoryForm({
   const [isDragging, setIsDragging] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [isSavingDraft, setIsSavingDraft] = React.useState(false)
-  const [autosaveState, setAutosaveState] = React.useState('Draft is saved locally')
+  const [_autosaveState, setAutosaveState] = React.useState('Draft is saved locally')
   const [toast, setToast] = React.useState<string | null>(null)
 
   React.useEffect(() => {
